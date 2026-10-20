@@ -40,8 +40,6 @@ INSTALLED_APPS = [
 
     # third-party apps
     'widget_tweaks',
-    'tailwind',
-    'theme',
 
     # local apps
     'accounts',
