@@ -1,0 +1,36 @@
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sistema de Clubes{% endblock %}</title>
+  {% tailwind_css %}
+  <style>
+    .input {
+      @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-base
+             focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none;
+    }
+    .btn {
+      @apply inline-flex items-center justify-center rounded-lg px-4 py-2
+             text-base font-medium transition;
+    }
+    .btn-primary { @apply btn bg-blue-600 text-white hover:bg-blue-700; }
+    .btn-secondary { @apply btn bg-gray-200 text-gray-800 hover:bg-gray-300; }
+    .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+    .card {
+      @apply bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+  {% if user.is_authenticated %}
+    {% include 'partials/nav.html' %}
+  {% endif %}
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    {% include 'partials/messages.html' %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

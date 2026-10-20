@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Panel{% endblock %}
+{% block content %}
+<h1 class="text-2xl sm:text-3xl font-bold mb-6">Panel de control</h1>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="card text-center">
+    <p class="text-3xl font-bold text-blue-700">{{ total_clubs }}</p>
+    <p class="text-sm text-gray-600 mt-1">Clubes</p>
+  </div>
+  <div class="card text-center">
+    <p class="text-3xl font-bold text-green-700">{{ total_participants }}</p>
+    <p class="text-sm text-gray-600 mt-1">Participantes</p>
+  </div>
+  <div class="card text-center">
+    <p class="text-3xl font-bold text-purple-700">{{ total_registrations }}</p>
+    <p class="text-sm text-gray-600 mt-1">Inscripciones</p>
+  </div>
+  <div class="card text-center">
+    <p class="text-3xl font-bold text-orange-700">{{ total_specialties }}</p>
+    <p class="text-sm text-gray-600 mt-1">Especialidades</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="font-semibold mb-4">Inscripciones recientes</h2>
+  <ul class="divide-y divide-gray-100">
+    {% for r in recent_registrations %}
+      <li class="py-3 flex flex-col sm:flex-row sm:justify-between">
+        <span class="font-medium">{{ r.participant.full_name }}</span>
+        <span class="text-sm text-gray-600">{{ r.schedule.specialty.name }} — {{ r.date|date:"d/m/Y" }}</span>
+      </li>
+    {% empty %}
+      <li class="py-3 text-gray-500">Sin inscripciones aún.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

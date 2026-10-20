@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+  <h1 class="text-2xl font-bold">Participantes</h1>
+  <a href="{% url 'participants:create' %}" class="btn-primary w-full sm:w-auto">+ Nuevo participante</a>
+</div>
+
+<form method="get" class="card mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por DNI o nombre"
+         class="input sm:col-span-2">
+  <select name="club" class="input">
+    <option value="">Todos los clubes</option>
+    {% for c in clubs %}
+      <option value="{{ c.id }}" {% if c.id|stringformat:'s' == selected_club %}selected{% endif %}>
+        {{ c.name }}
+      </option>
+    {% endfor %}
+  </select>
+  <button class="btn-primary sm:col-span-3">Filtrar</button>
+</form>
+
+<!-- Vista móvil: tarjetas -->
+<div class="md:hidden space-y-3">
+  {% for p in participants %}
+    <div class="card">
+      <p class="font-bold">{{ p.full_name }}</p>
+      <p class="text-sm text-gray-600">DNI: {{ p.dni }}</p>
+      <p class="text-sm text-gray-600">Club: {{ p.club.name }}</p>
+      <a href="{% url 'participants:detail' p.pk %}"
+         class="btn-secondary mt-3 w-full">Ver detalle</a>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">Sin participantes.</p>
+  {% endfor %}
+</div>
+
+<!-- Vista escritorio: tabla -->
+<div class="hidden md:block card overflow-hidden p-0">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-left">
+      <tr>
+        <th class="px-4 py-3">DNI</th>
+        <th class="px-4 py-3">Apellidos y nombres</th>
+        <th class="px-4 py-3">Club</th>
+        <th class="px-4 py-3">Celular</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for p in participants %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">{{ p.dni }}</td>
+          <td class="px-4 py-3">{{ p.last_name }}, {{ p.first_name }}</td>
+          <td class="px-4 py-3">{{ p.club.name }}</td>
+          <td class="px-4 py-3">{{ p.phone|default:"—" }}</td>
+          <td class="px-4 py-3 text-right">
+            <a href="{% url 'participants:detail' p.pk %}" class="text-blue-600 hover:underline">Ver</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-center py-6 text-gray-500">Sin participantes.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'partials/pagination.html' %}
+{% endblock %}

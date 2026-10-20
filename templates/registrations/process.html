@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Procesos de inscripción</h1>
+
+<div class="grid gap-4 sm:grid-cols-2">
+  {% for p in processes %}
+    <div class="card">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="font-bold text-lg">{{ p.club.name }}</p>
+          <p class="text-sm text-gray-600">{{ p.club.zone }}</p>
+        </div>
+        <span class="text-xs font-semibold px-2 py-1 rounded
+          {% if p.is_open %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+          {% if p.is_open %}Abierto{% else %}Cerrado{% endif %}
+        </span>
+      </div>
+      {% if not p.is_open and p.closed_by %}
+        <p class="text-xs text-gray-500 mt-3">
+          Cerrado por {{ p.closed_by.username }} — {{ p.closed_at|date:"d/m/Y H:i" }}
+        </p>
+      {% endif %}
+      <div class="flex gap-2 mt-4">
+        {% if p.is_open and user.is_registrador %}
+          <a href="{% url 'registrations:process_close' p.club_id %}"
+             onclick="return confirm('¿Cerrar el proceso?')"
+             class="btn-danger w-full text-center">Cerrar proceso</a>
+        {% elif not p.is_open and user.is_admin %}
+          <a href="{% url 'registrations:process_reopen' p.club_id %}"
+             onclick="return confirm('¿Reabrir el proceso?')"
+             class="btn-primary w-full text-center">Reabrir (admin)</a>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">Sin procesos registrados.</p>
+  {% endfor %}
+</div>
+{% endblock %}

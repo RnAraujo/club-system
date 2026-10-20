@@ -1,0 +1,52 @@
+<nav class="bg-blue-700 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
+      <a href="{% url 'dashboard' %}" class="font-bold text-xl">Gestión Clubes</a>
+
+      <!-- Menú escritorio -->
+      <div class="hidden md:flex items-center gap-4">
+        <a href="{% url 'clubs:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Clubes</a>
+        <a href="{% url 'participants:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Participantes</a>
+        <a href="{% url 'specialties:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Especialidades</a>
+        <a href="{% url 'registrations:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Inscripciones</a>
+        <a href="{% url 'reports:by_specialty_club' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Reportes</a>
+        {% if user.is_registrador %}
+          <a href="{% url 'registrations:process' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Proceso</a>
+        {% endif %}
+        <span class="border-l border-blue-500 pl-4">
+          {{ user.get_full_name|default:user.username }}
+          <span class="text-xs bg-blue-800 px-2 py-0.5 rounded">{{ user.get_role_display }}</span>
+        </span>
+        <form action="{% url 'accounts:logout' %}" method="post" class="inline">
+          {% csrf_token %}
+          <button class="hover:bg-blue-600 px-3 py-2 rounded">Salir</button>
+        </form>
+      </div>
+
+      <!-- Botón móvil -->
+      <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+              class="md:hidden p-2 rounded hover:bg-blue-600" aria-label="Menú">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Menú móvil -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4 space-y-1">
+      <a href="{% url 'clubs:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Clubes</a>
+      <a href="{% url 'participants:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Participantes</a>
+      <a href="{% url 'specialties:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Especialidades</a>
+      <a href="{% url 'registrations:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Inscripciones</a>
+      <a href="{% url 'reports:by_specialty_club' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Reportes</a>
+      {% if user.is_registrador %}
+        <a href="{% url 'registrations:process' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Proceso</a>
+      {% endif %}
+      <form action="{% url 'accounts:logout' %}" method="post" class="px-3 py-2">
+        {% csrf_token %}
+        <button class="w-full text-left hover:bg-blue-600 rounded px-3 py-2">Salir</button>
+      </form>
+    </div>
+  </div>
+</nav>

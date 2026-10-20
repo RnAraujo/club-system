@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto card">
+  <h1 class="text-xl font-bold mb-6">Nueva inscripción</h1>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="bg-red-100 text-red-800 border border-red-200 rounded-lg px-4 py-3 text-sm">
+        {{ form.non_field_errors.0 }}
+      </div>
+    {% endif %}
+    {% for field in form %}
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <div class="flex flex-col sm:flex-row gap-2 pt-2">
+      <button type="submit" class="btn-primary w-full sm:w-auto">Registrar inscripción</button>
+      <a href="{% url 'registrations:list' %}" class="btn-secondary w-full sm:w-auto text-center">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
