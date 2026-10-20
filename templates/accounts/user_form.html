@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ form_title }}</li>
+      </ol>
+    </nav>
+
+    <div class="mb-4">
+      <h1 class="page-title mb-1">{{ form_title }}</h1>
+      <p class="page-subtitle mb-0">Modifica los datos, el rol o el club del usuario.</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="card">
+        <div class="card-body p-4">
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form.non_field_errors.0 }}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.username.label }} <span class="text-danger">*</span></label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.email.label }}</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.role.label }} <span class="text-danger">*</span></label>
+              {{ form.role }}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.club.label }}</label>
+              {{ form.club }}
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch">
+                {{ form.is_active }}
+                <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                  {{ form.is_active.label }}
+                </label>
+                <div class="form-text">Los usuarios inactivos no pueden iniciar sesión.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card-footer bg-light d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2 py-3">
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Guardar cambios
+          </button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ form_title }}</li>
+      </ol>
+    </nav>
+
+    <div class="mb-4">
+      <h1 class="page-title mb-1">{{ form_title }}</h1>
+      <p class="page-subtitle mb-0">
+        Crea un nuevo usuario y asígnale un club y un rol en el sistema.
+      </p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="card">
+        <div class="card-body p-4">
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger d-flex align-items-start gap-2">
+              <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+              <div>
+                {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <h6 class="text-uppercase text-muted small fw-bold mb-3">
+            <i class="bi bi-person me-1"></i> Datos del usuario
+          </h6>
+
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.username.label }} <span class="text-danger">*</span></label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.email.label }}</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <h6 class="text-uppercase text-muted small fw-bold mb-3">
+            <i class="bi bi-shield me-1"></i> Rol y club
+          </h6>
+
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.role.label }} <span class="text-danger">*</span></label>
+              {{ form.role }}
+              <div class="form-text">
+                Los roles Registrador y Observador deben tener un club asignado.
+              </div>
+              {% if form.role.errors %}<div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.club.label }}</label>
+              {{ form.club }}
+              {% if form.club.errors %}<div class="text-danger small mt-1">{{ form.club.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <h6 class="text-uppercase text-muted small fw-bold mb-3">
+            <i class="bi bi-key me-1"></i> Contraseña
+          </h6>
+
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.password1.label }} <span class="text-danger">*</span></label>
+              {{ form.password1 }}
+              {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label fw-semibold">{{ form.password2.label }} <span class="text-danger">*</span></label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card-footer bg-light d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2 py-3">
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Crear usuario
+          </button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -7,9 +7,11 @@
     <h1 class="page-title mb-1">Clubes</h1>
     <p class="page-subtitle mb-0">Administra los clubes y consulta su directiva y participantes.</p>
   </div>
-  <a href="{% url 'clubs:create' %}" class="btn btn-primary w-100 w-sm-auto">
-    <i class="bi bi-plus-lg"></i> Nuevo club
-  </a>
+  {% if user.is_admin %}
+    <a href="{% url 'clubs:create' %}" class="btn btn-primary w-100 w-sm-auto">
+      <i class="bi bi-plus-lg"></i> Nuevo club
+    </a>
+  {% endif %}
 </div>
 
 <!-- Búsqueda -->
