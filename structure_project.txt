@@ -1,0 +1,87 @@
+club_system/
+├── manage.py
+├── requirements.txt
+├── .env.example
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+├── accounts/
+│   ├── models.py
+│   ├── forms.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   ├── mixins.py
+│   └── apps.py
+├── clubs/
+│   ├── models.py
+│   ├── forms.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── apps.py
+├── participants/
+│   ├── models.py
+│   ├── forms.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── apps.py
+├── specialties/
+│   ├── models.py
+│   ├── forms.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── apps.py
+├── registrations/
+│   ├── models.py
+│   ├── forms.py
+│   ├── services.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── apps.py
+├── reports/
+│   ├── views.py
+│   ├── urls.py
+│   └── apps.py
+├── templates/
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── partials/
+│   │   ├── nav.html
+│   │   ├── messages.html
+│   │   └── pagination.html
+│   ├── accounts/
+│   │   ├── login.html
+│   │   └── register.html
+│   ├── clubs/
+│   │   ├── list.html
+│   │   ├── form.html
+│   │   └── directive_list.html
+│   ├── participants/
+│   │   ├── list.html
+│   │   ├── detail.html
+│   │   └── form.html
+│   ├── specialties/
+│   │   ├── list.html
+│   │   ├── form.html
+│   │   └── schedule_form.html
+│   ├── registrations/
+│   │   ├── list.html
+│   │   ├── form.html
+│   │   └── process.html
+│   └── reports/
+│       ├── by_specialty_club.html
+│       ├── by_specialty.html
+│       └── by_day.html
+├── static/
+│   └── css/
+├── theme/                     # django-tailwind
+│   ├── static_src/
+│   └── templates/
+└── locale/
