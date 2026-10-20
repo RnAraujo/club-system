@@ -1,52 +1,72 @@
-<nav class="bg-blue-700 text-white shadow-lg">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16 items-center">
-      <a href="{% url 'dashboard' %}" class="font-bold text-xl">Gestión Clubes</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">
+      <i class="bi bi-building"></i> Gestión Clubes
+    </a>
 
-      <!-- Menú escritorio -->
-      <div class="hidden md:flex items-center gap-4">
-        <a href="{% url 'clubs:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Clubes</a>
-        <a href="{% url 'participants:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Participantes</a>
-        <a href="{% url 'specialties:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Especialidades</a>
-        <a href="{% url 'registrations:list' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Inscripciones</a>
-        <a href="{% url 'reports:by_specialty_club' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Reportes</a>
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      {% with app=request.resolver_match.app_name %}
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link {% if app == 'clubs' %}active fw-semibold{% endif %}"
+             href="{% url 'clubs:list' %}">
+            <i class="bi bi-building"></i> Clubes
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if app == 'participants' %}active fw-semibold{% endif %}"
+             href="{% url 'participants:list' %}">
+            <i class="bi bi-people"></i> Participantes
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if app == 'specialties' %}active fw-semibold{% endif %}"
+             href="{% url 'specialties:list' %}">
+            <i class="bi bi-trophy"></i> Especialidades
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if app == 'registrations' %}active fw-semibold{% endif %}"
+             href="{% url 'registrations:list' %}">
+            <i class="bi bi-clipboard-check"></i> Inscripciones
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if app == 'reports' %}active fw-semibold{% endif %}"
+             href="{% url 'reports:by_specialty_club' %}">
+            <i class="bi bi-bar-chart"></i> Reportes
+          </a>
+        </li>
         {% if user.is_registrador %}
-          <a href="{% url 'registrations:process' %}" class="hover:bg-blue-600 px-3 py-2 rounded">Proceso</a>
+          <li class="nav-item">
+            <a class="nav-link {% if app == 'registrations' and 'process' in request.path %}active fw-semibold{% endif %}"
+               href="{% url 'registrations:process' %}">
+              <i class="bi bi-lock"></i> Proceso
+            </a>
+          </li>
         {% endif %}
-        <span class="border-l border-blue-500 pl-4">
-          {{ user.get_full_name|default:user.username }}
-          <span class="text-xs bg-blue-800 px-2 py-0.5 rounded">{{ user.get_role_display }}</span>
-        </span>
-        <form action="{% url 'accounts:logout' %}" method="post" class="inline">
+      </ul>
+      {% endwith %}
+
+      <div class="d-flex align-items-center gap-3 text-white">
+        <div class="text-end small lh-sm d-none d-lg-block">
+          <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+          <span class="badge bg-white text-primary">{{ user.get_role_display }}</span>
+        </div>
+        <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
           {% csrf_token %}
-          <button class="hover:bg-blue-600 px-3 py-2 rounded">Salir</button>
+          <button class="btn btn-outline-light btn-sm" title="Cerrar sesión">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="d-none d-lg-inline ms-1">Salir</span>
+          </button>
         </form>
       </div>
-
-      <!-- Botón móvil -->
-      <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
-              class="md:hidden p-2 rounded hover:bg-blue-600" aria-label="Menú">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Menú móvil -->
-    <div id="mobile-menu" class="hidden md:hidden pb-4 space-y-1">
-      <a href="{% url 'clubs:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Clubes</a>
-      <a href="{% url 'participants:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Participantes</a>
-      <a href="{% url 'specialties:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Especialidades</a>
-      <a href="{% url 'registrations:list' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Inscripciones</a>
-      <a href="{% url 'reports:by_specialty_club' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Reportes</a>
-      {% if user.is_registrador %}
-        <a href="{% url 'registrations:process' %}" class="block px-3 py-2 rounded hover:bg-blue-600">Proceso</a>
-      {% endif %}
-      <form action="{% url 'accounts:logout' %}" method="post" class="px-3 py-2">
-        {% csrf_token %}
-        <button class="w-full text-left hover:bg-blue-600 rounded px-3 py-2">Salir</button>
-      </form>
     </div>
   </div>
 </nav>

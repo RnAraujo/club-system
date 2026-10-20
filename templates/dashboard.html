@@ -1,38 +1,363 @@
 {% extends 'base.html' %}
-{% block title %}Panel{% endblock %}
+{% block title %}Panel de control{% endblock %}
 {% block content %}
-<h1 class="text-2xl sm:text-3xl font-bold mb-6">Panel de control</h1>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-  <div class="card text-center">
-    <p class="text-3xl font-bold text-blue-700">{{ total_clubs }}</p>
-    <p class="text-sm text-gray-600 mt-1">Clubes</p>
+<!-- ============================
+     ENCABEZADO DE BIENVENIDA
+     ============================ -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">
+      Hola, {{ user.get_full_name|default:user.username }}
+    </h1>
+    <p class="page-subtitle mb-0">
+      {% if user.is_admin %}
+        Panel global del sistema · {{ today|date:"l, d \d\e F \d\e Y" }}
+      {% elif user.club %}
+        Panel de {{ user.club.name }} · {{ today|date:"l, d \d\e F \d\e Y" }}
+      {% else %}
+        Panel de control · {{ today|date:"l, d \d\e F \d\e Y" }}
+      {% endif %}
+    </p>
   </div>
-  <div class="card text-center">
-    <p class="text-3xl font-bold text-green-700">{{ total_participants }}</p>
-    <p class="text-sm text-gray-600 mt-1">Participantes</p>
+  <span class="badge bg-primary-subtle text-primary-emphasis fs-6 px-3 py-2">
+    <i class="bi bi-person-badge me-1"></i>{{ user.get_role_display }}
+  </span>
+</div>
+
+<!-- ============================
+     ALERTA: PROCESO CERRADO
+     ============================ -->
+{% if current_process and not current_process.is_open %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+    <i class="bi bi-lock-fill fs-5"></i>
+    <div>
+      <strong>Proceso de inscripción cerrado.</strong>
+      {% if current_process.closed_by %}
+        Cerrado por {{ current_process.closed_by.username }}
+        el {{ current_process.closed_at|date:"d/m/Y H:i" }}.
+      {% endif %}
+      {% if user.is_admin %}
+        <a href="{% url 'registrations:process' %}" class="alert-link">Reabrir desde aquí</a>.
+      {% endif %}
+    </div>
   </div>
-  <div class="card text-center">
-    <p class="text-3xl font-bold text-purple-700">{{ total_registrations }}</p>
-    <p class="text-sm text-gray-600 mt-1">Inscripciones</p>
+{% endif %}
+
+<!-- ============================
+     MÉTRICAS PRINCIPALES
+     ============================ -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Clubes</div>
+            <div class="metric-value text-primary">{{ total_clubs }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-building fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="card text-center">
-    <p class="text-3xl font-bold text-orange-700">{{ total_specialties }}</p>
-    <p class="text-sm text-gray-600 mt-1">Especialidades</p>
+
+  <div class="col-6 col-lg-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Participantes</div>
+            <div class="metric-value text-success">{{ total_participants }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-people fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Inscripciones</div>
+            <div class="metric-value text-info">{{ total_registrations }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-info-subtle text-info"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-clipboard-check fs-5"></i>
+          </span>
+        </div>
+        <div class="small text-muted mt-2">
+          <i class="bi bi-calendar-day"></i>
+          {{ today_registrations }} hoy
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Especialidades</div>
+            <div class="metric-value text-warning">{{ total_specialties }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle text-warning"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-trophy fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="card">
-  <h2 class="font-semibold mb-4">Inscripciones recientes</h2>
-  <ul class="divide-y divide-gray-100">
-    {% for r in recent_registrations %}
-      <li class="py-3 flex flex-col sm:flex-row sm:justify-between">
-        <span class="font-medium">{{ r.participant.full_name }}</span>
-        <span class="text-sm text-gray-600">{{ r.schedule.specialty.name }} — {{ r.date|date:"d/m/Y" }}</span>
-      </li>
-    {% empty %}
-      <li class="py-3 text-gray-500">Sin inscripciones aún.</li>
-    {% endfor %}
-  </ul>
+<!-- ============================
+     CONTENIDO PRINCIPAL EN 2 COLUMNAS
+     ============================ -->
+<div class="row g-4">
+
+  <!-- ---------- Columna izquierda ---------- -->
+  <div class="col-12 col-lg-8">
+
+    <!-- Inscripciones recientes -->
+    <div class="card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-clock-history me-1"></i> Inscripciones recientes
+        </h5>
+        <a href="{% url 'registrations:list' %}" class="btn btn-sm btn-outline-secondary">
+          Ver todas <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      {% if recent_registrations %}
+        <ul class="list-group list-group-flush">
+          {% for r in recent_registrations %}
+            <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">
+                  {{ r.participant.last_name }}, {{ r.participant.first_name }}
+                </div>
+                <div class="text-muted small">
+                  <i class="bi bi-trophy"></i> {{ r.schedule.specialty.name }}
+                  <span class="mx-1">·</span>
+                  <i class="bi bi-building"></i> {{ r.participant.club.name }}
+                </div>
+              </div>
+              <div class="text-end text-nowrap">
+                <span class="badge bg-light text-dark border">
+                  {{ r.date|date:"d/m/Y" }}
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+          <p class="fw-semibold text-dark mb-1">Sin inscripciones aún</p>
+          <p class="small mb-0">Las inscripciones aparecerán aquí en cuanto se registren.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Próximas programaciones -->
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-calendar-event me-1"></i> Próximas programaciones
+        </h5>
+        <a href="{% url 'specialties:list' %}" class="btn btn-sm btn-outline-secondary">
+          Ver todas <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      {% if upcoming_schedules %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Especialidad</th>
+                <th>Fecha</th>
+                <th class="text-end">Cupos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in upcoming_schedules %}
+                <tr>
+                  <td class="fw-semibold">{{ s.specialty.name }}</td>
+                  <td>
+                    <i class="bi bi-calendar3 me-1 text-muted"></i>
+                    {{ s.date|date:"d/m/Y" }}
+                  </td>
+                  <td class="text-end">
+                    {% if s.available_slots > 0 %}
+                      <span class="badge bg-success-subtle text-success-emphasis">
+                        {{ s.available_slots }} disponibles
+                      </span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger-emphasis">
+                        Agotado
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+          <p class="fw-semibold text-dark mb-1">Sin programaciones próximas</p>
+          <p class="small mb-0">Programa especialidades para que aparezcan aquí.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ---------- Columna derecha ---------- -->
+  <div class="col-12 col-lg-4">
+
+    <!-- Acciones rápidas -->
+    <div class="card mb-4">
+      <div class="card-header bg-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-lightning-charge me-1"></i> Acciones rápidas
+        </h5>
+      </div>
+      <div class="card-body d-grid gap-2">
+        {% if user.is_registrador %}
+          <a href="{% url 'registrations:create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva inscripción
+          </a>
+        {% endif %}
+        <a href="{% url 'participants:create' %}" class="btn btn-outline-primary">
+          <i class="bi bi-person-plus"></i> Registrar participante
+        </a>
+        <a href="{% url 'clubs:create' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-building-add"></i> Nuevo club
+        </a>
+        <a href="{% url 'specialties:create' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-trophy"></i> Nueva especialidad
+        </a>
+        <a href="{% url 'reports:by_specialty_club' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-bar-chart"></i> Ver reportes
+        </a>
+      </div>
+    </div>
+
+    <!-- Estado del proceso (admin) -->
+    {% if user.is_admin and processes %}
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-lock me-1"></i> Procesos de inscripción
+          </h5>
+          <a href="{% url 'registrations:process' %}" class="btn btn-sm btn-outline-secondary">
+            Gestionar
+          </a>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for p in processes|slice:":6" %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">{{ p.club.name }}</div>
+                <div class="text-muted small">{{ p.club.zone }}</div>
+              </div>
+              {% if p.is_open %}
+                <span class="badge bg-success">
+                  <i class="bi bi-unlock"></i> Abierto
+                </span>
+              {% else %}
+                <span class="badge bg-danger">
+                  <i class="bi bi-lock"></i> Cerrado
+                </span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% if processes|length > 6 %}
+          <div class="card-footer bg-white text-center">
+            <a href="{% url 'registrations:process' %}" class="small fw-semibold text-decoration-none">
+              Ver todos los procesos ({{ processes|length }})
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Estado del proceso (registrador) -->
+    {% if not user.is_admin and current_process %}
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-lock me-1"></i> Mi proceso
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          {% if current_process.is_open %}
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success mb-3"
+                  style="width: 64px; height: 64px;">
+              <i class="bi bi-unlock fs-2"></i>
+            </span>
+            <h6 class="fw-bold mb-1">Inscripciones abiertas</h6>
+            <p class="text-muted small mb-3">
+              Puedes registrar participantes en especialidades.
+            </p>
+            <a href="{% url 'registrations:process' %}" class="btn btn-outline-danger btn-sm w-100">
+              <i class="bi bi-lock"></i> Cerrar proceso
+            </a>
+          {% else %}
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-3"
+                  style="width: 64px; height: 64px;">
+              <i class="bi bi-lock fs-2"></i>
+            </span>
+            <h6 class="fw-bold mb-1">Inscripciones cerradas</h6>
+            <p class="text-muted small mb-0">
+              {% if current_process.closed_at %}
+                Cerrado el {{ current_process.closed_at|date:"d/m/Y H:i" }}.
+              {% endif %}
+              Contacta al administrador para reabrirlo.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Info del club (registrador/observador) -->
+    {% if not user.is_admin and user.club %}
+      <div class="card mt-4">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary"
+                  style="width: 44px; height: 44px;">
+              <i class="bi bi-building fs-5"></i>
+            </span>
+            <div class="min-w-0">
+              <div class="fw-semibold text-truncate">{{ user.club.name }}</div>
+              <div class="text-muted small">Zona: {{ user.club.zone }}</div>
+            </div>
+          </div>
+          <a href="{% url 'clubs:detail' user.club.pk %}"
+             class="btn btn-outline-primary btn-sm w-100 mt-3">
+            Ver detalle del club <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
 </div>
+
 {% endblock %}

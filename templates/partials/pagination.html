@@ -1,13 +1,31 @@
 {% if is_paginated %}
-  <nav class="flex justify-center gap-2 mt-6">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">Anterior</a>
-    {% endif %}
-    <span class="px-4 py-2 text-sm text-gray-600">
-      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-    </span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="btn-secondary">Siguiente</a>
-    {% endif %}
-  </nav>
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-4">
+    <small class="text-muted">
+      Mostrando
+      <strong>{{ page_obj.start_index }}</strong>–<strong>{{ page_obj.end_index }}</strong>
+      de <strong>{{ page_obj.paginator.count }}</strong>
+    </small>
+
+    <nav aria-label="Paginación">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+          {% if page_obj.has_previous %}
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+          {% else %}
+            <span class="page-link">Anterior</span>
+          {% endif %}
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+          {% if page_obj.has_next %}
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+          {% else %}
+            <span class="page-link">Siguiente</span>
+          {% endif %}
+        </li>
+      </ul>
+    </nav>
+  </div>
 {% endif %}

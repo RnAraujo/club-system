@@ -6,7 +6,11 @@
   <form method="post" class="space-y-4">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn-primary w-full">Ingresar</button>
+    <button
+        type="submit"
+        class="mt-6 w-full rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
+        Iniciar sesión
+    </button>
   </form>
   <p class="text-center text-sm text-gray-600 mt-4">
     ¿No tienes cuenta?

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card">
+      <div class="card-body p-4">
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <span class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+          </span>
+          <div>
+            <h4 class="mb-1">{{ title }}</h4>
+            <p class="text-muted mb-0 small">Esta acción no se puede deshacer.</p>
+          </div>
+        </div>
+
+        <div class="border rounded bg-light p-3 mb-4">
+          <div class="text-uppercase text-muted small fw-semibold mb-1">Elemento a eliminar</div>
+          <div class="fw-semibold">
+            {% if object.last_name %}
+              {{ object.last_name }}, {{ object.first_name }}
+            {% else %}
+              {{ object }}
+            {% endif %}
+          </div>
+        </div>
+
+        <form method="post" class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
+          {% csrf_token %}
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Sí, eliminar
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

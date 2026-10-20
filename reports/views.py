@@ -7,34 +7,66 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from clubs.models import Club
 from specialties.models import Specialty, SpecialtySchedule
+from participants.models import Participant
+from registrations.models import RegistrationProcess
+from django.utils import timezone
 from registrations.models import Registration
 from accounts.mixins import AdminRequiredMixin
 
 
-# ========== Dashboard ==========
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         u = self.request.user
-        regs = Registration.objects.all()
-        if not u.is_admin and u.club_id:
-            regs = regs.filter(participant__club_id=u.club_id)
+        today = timezone.localdate()
 
-        ctx.update({
-            'total_clubs': Club.objects.count(),
-            'total_participants': (
-                sum(c.participants.count() for c in Club.objects.all())
-                if u.is_admin else
-                (u.club.participants.count() if u.club else 0)
-            ),
-            'total_registrations': regs.count(),
-            'total_specialties': Specialty.objects.count(),
-            'recent_registrations': regs.select_related(
-                'participant', 'schedule__specialty'
-            ).order_by('-created_at')[:5],
-        })
+        # ---- Base querysets según rol ----
+        clubs_qs = Club.objects.all()
+        participants_qs = Participant.objects.all()
+        registrations_qs = Registration.objects.all()
+
+        if not u.is_admin and u.club_id:
+            clubs_qs = clubs_qs.filter(pk=u.club_id)
+            participants_qs = participants_qs.filter(club_id=u.club_id)
+            registrations_qs = registrations_qs.filter(participant__club_id=u.club_id)
+
+        # ---- Métricas principales ----
+        ctx['total_clubs'] = clubs_qs.count()
+        ctx['total_participants'] = participants_qs.count()
+        ctx['total_registrations'] = registrations_qs.count()
+        ctx['total_specialties'] = Specialty.objects.count()
+
+        # ---- Métricas secundarias ----
+        ctx['today_registrations'] = registrations_qs.filter(date=today).count()
+        ctx['today'] = today
+        ctx['upcoming_schedules'] = (
+            SpecialtySchedule.objects
+            .select_related('specialty')
+            .filter(date__gte=today)
+            .order_by('date')[:5]
+        )
+
+        # ---- Inscripciones recientes ----
+        ctx['recent_registrations'] = (
+            registrations_qs
+            .select_related('participant__club', 'schedule__specialty', 'registered_by')
+            .order_by('-created_at')[:8]
+        )
+
+        # ---- Estado del proceso de inscripción ----
+        if u.is_admin:
+            ctx['processes'] = (
+                RegistrationProcess.objects
+                .select_related('club', 'closed_by')
+                .order_by('club__name')
+            )
+        elif u.club_id:
+            try:
+                ctx['current_process'] = RegistrationProcess.objects.get(club_id=u.club_id)
+            except RegistrationProcess.DoesNotExist:
+                ctx['current_process'] = None
         return ctx
 
 
