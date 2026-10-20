@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}Inscripciones{% endblock %}
+{% block content %}
+
+<!-- Encabezado -->
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">Inscripciones</h1>
+    <p class="page-subtitle mb-0">
+      Consulta y registra participaciones en las especialidades programadas.
+    </p>
+  </div>
+  {% if user.is_registrador %}
+    <a href="{% url 'registrations:create' %}" class="btn btn-primary w-100 w-sm-auto">
+      <i class="bi bi-plus-circle"></i> Nueva inscripción
+    </a>
+  {% endif %}
+</div>
+
+<!-- Métricas -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Resultados</div>
+            <div class="metric-value text-primary">{{ total_filtered }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-funnel fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Hoy</div>
+            <div class="metric-value text-success">{{ today_count }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-calendar-day fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Fecha actual</div>
+            <div class="fs-5 fw-bold text-gray-700">{{ today|date:"d/m/Y" }}</div>
+          </div>
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-info-subtle text-info"
+                style="width: 44px; height: 44px;">
+            <i class="bi bi-clock fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label for="q" class="form-label small fw-semibold">Buscar participante</label>
+        <input type="text" id="q" name="q" value="{{ q }}"
+               class="form-control" placeholder="DNI, nombres o apellidos">
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label for="specialty" class="form-label small fw-semibold">Especialidad</label>
+        <select id="specialty" name="specialty" class="form-select">
+          <option value="">Todas</option>
+          {% for s in specialties %}
+            <option value="{{ s.pk }}"
+              {% if s.pk|stringformat:'s' == selected_specialty %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if user.is_admin %}
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="club" class="form-label small fw-semibold">Club</label>
+          <select id="club" name="club" class="form-select">
+            <option value="">Todos</option>
+            {% for c in clubs %}
+              <option value="{{ c.pk }}"
+                {% if c.pk|stringformat:'s' == selected_club %}selected{% endif %}>
+                {{ c.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      <div class="col-6 col-sm-3 col-lg-2">
+        <label for="date_from" class="form-label small fw-semibold">Desde</label>
+        <input type="date" id="date_from" name="date_from" value="{{ date_from }}" class="form-control">
+      </div>
+      <div class="col-6 col-sm-3 col-lg-2">
+        <label for="date_to" class="form-label small fw-semibold">Hasta</label>
+        <input type="date" id="date_to" name="date_to" value="{{ date_to }}" class="form-control">
+      </div>
+      <div class="col-12 d-flex flex-sm-row-reverse gap-2">
+        <button class="btn btn-primary">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+        <a href="{% url 'registrations:list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-x-lg"></i> Limpiar filtros
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- ============ Vista móvil: tarjetas ============ -->
+<div class="d-md-none vstack gap-3">
+  {% for r in registrations %}
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          <div class="min-w-0">
+            <a href="{% url 'participants:detail' r.participant.pk %}"
+               class="fw-semibold text-decoration-none text-dark d-block text-truncate">
+              {{ r.participant.last_name }}, {{ r.participant.first_name }}
+            </a>
+            <div class="text-muted small">
+              <i class="bi bi-building"></i> {{ r.participant.club.name }}
+            </div>
+          </div>
+          <span class="badge bg-primary text-nowrap">
+            <i class="bi bi-calendar3"></i> {{ r.date|date:"d/m" }}
+          </span>
+        </div>
+
+        <div class="bg-light rounded p-2 small mb-3">
+          <div class="text-muted" style="font-size: .7rem;">Especialidad</div>
+          <div class="fw-semibold">
+            <i class="bi bi-trophy text-warning"></i> {{ r.schedule.specialty.name }}
+          </div>
+          <div class="text-muted" style="font-size: .75rem;">
+            {{ r.date|date:"l, d \d\e F \d\e Y" }}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center small text-muted">
+          <span>
+            <i class="bi bi-person-badge"></i>
+            {{ r.registered_by.get_full_name|default:r.registered_by.username|default:"—" }}
+          </span>
+          <span class="font-monospace">{{ r.participant.dni }}</span>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="card">
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
+        <p class="fw-semibold text-dark mb-1">Sin inscripciones</p>
+        <p class="small mb-0">No hay inscripciones que coincidan con los filtros aplicados.</p>
+        {% if user.is_registrador %}
+          <a href="{% url 'registrations:create' %}" class="btn btn-primary btn-sm mt-3">
+            <i class="bi bi-plus-circle"></i> Registrar primera inscripción
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- ============ Vista escritorio: tabla ============ -->
+<div class="card d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Participante</th>
+          <th>Club</th>
+          <th>Especialidad</th>
+          <th>Registrado por</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registrations %}
+          <tr>
+            <td class="text-nowrap">
+              <div class="fw-semibold">{{ r.date|date:"d/m/Y" }}</div>
+              <small class="text-muted">{{ r.date|date:"l" }}</small>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ r.participant.last_name }}, {{ r.participant.first_name }}</div>
+              <small class="text-muted font-monospace">DNI: {{ r.participant.dni }}</small>
+            </td>
+            <td>{{ r.participant.club.name }}</td>
+            <td>
+              <span class="badge bg-primary-subtle text-primary-emphasis">
+                <i class="bi bi-trophy"></i> {{ r.schedule.specialty.name }}
+              </span>
+            </td>
+            <td class="small text-muted">
+              {{ r.registered_by.get_full_name|default:r.registered_by.username|default:"—" }}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'participants:detail' r.participant.pk %}"
+                 class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-eye"></i> Ver participante
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-50"></i>
+              <p class="fw-semibold text-dark mb-1">Sin inscripciones</p>
+              <p class="small mb-0">No hay inscripciones que coincidan con los filtros aplicados.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include 'partials/pagination.html' %}
+{% endblock %}

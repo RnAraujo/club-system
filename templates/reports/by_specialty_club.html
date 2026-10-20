@@ -1,55 +1,212 @@
 {% extends 'base.html' %}
+{% block title %}Inscritos por especialidad y club{% endblock %}
 {% block content %}
-<div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
-  <h1 class="text-2xl font-bold">Inscritos por especialidad y club</h1>
-  <a href="{% url 'reports:export_specialty_club' %}?specialty={{ selected_specialty }}"
-     class="btn-secondary text-center">Exportar CSV</a>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb small mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'reports:index' %}">Reportes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Por especialidad y club</li>
+  </ol>
+</nav>
+
+<!-- Encabezado -->
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">Inscritos por especialidad y club</h1>
+    <p class="page-subtitle mb-0">
+      {% if user.is_admin %}
+        Comparativa global por club y especialidad.
+      {% else %}
+        Inscripciones de tu club por especialidad.
+      {% endif %}
+    </p>
+  </div>
+  <a href="{% url 'reports:export_specialty_club' %}?{{ request.GET.urlencode }}"
+     class="btn btn-success w-100 w-sm-auto">
+    <i class="bi bi-file-earmark-excel"></i> Exportar CSV
+  </a>
 </div>
 
-<form method="get" class="card mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-  <select name="specialty" class="input sm:col-span-2">
-    <option value="">Todas las especialidades</option>
-    {% for s in specialties %}
-      <option value="{{ s.id }}" {% if s.id|stringformat:'s' == selected_specialty %}selected{% endif %}>
-        {{ s.name }}
-      </option>
-    {% endfor %}
-  </select>
-  <button class="btn-primary">Filtrar</button>
+<!-- Métricas -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Inscripciones</div>
+        <div class="metric-value text-primary">{{ total_registrations }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Especialidades</div>
+        <div class="metric-value text-success">{{ total_specialties }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Clubes</div>
+        <div class="metric-value text-info">{{ total_clubs }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="form-label small fw-semibold">Especialidad</label>
+        <select name="specialty" class="form-select">
+          <option value="">Todas</option>
+          {% for s in specialties %}
+            <option value="{{ s.pk }}"
+              {% if s.pk|stringformat:'s' == selected_specialty %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if user.is_admin %}
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label class="form-label small fw-semibold">Club</label>
+          <select name="club" class="form-select">
+            <option value="">Todos</option>
+            {% for c in clubs %}
+              <option value="{{ c.pk }}"
+                {% if c.pk|stringformat:'s' == selected_club %}selected{% endif %}>
+                {{ c.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold">Desde</label>
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold">Hasta</label>
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
+      </div>
+      <div class="col-12 col-lg-2 d-flex align-items-end gap-2">
+        <button class="btn btn-primary flex-fill">
+          <i class="bi bi-funnel"></i> Filtrar
+        </button>
+        <a href="{% url 'reports:by_specialty_club' %}" class="btn btn-outline-secondary" title="Limpiar">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+    </div>
+  </div>
 </form>
 
-<div class="hidden md:block card p-0 overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-gray-50 text-left">
-      <tr>
-        <th class="px-4 py-3">Especialidad</th>
-        <th class="px-4 py-3">Club</th>
-        <th class="px-4 py-3 text-right">Total inscritos</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% for r in rows %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3">{{ r.schedule__specialty__name }}</td>
-          <td class="px-4 py-3">{{ r.participant__club__name }}</td>
-          <td class="px-4 py-3 text-right font-semibold">{{ r.total }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="3" class="text-center py-6 text-gray-500">Sin datos.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<!-- Totales por especialidad -->
+{% if totals_by_specialty %}
+  <div class="card mb-4">
+    <div class="card-header bg-white">
+      <h5 class="card-title mb-0">
+        <i class="bi bi-bar-chart-line me-1"></i> Totales por especialidad
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for t in totals_by_specialty %}
+          <div class="col-6 col-lg-4 col-xl-3">
+            <div class="border rounded-3 p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div class="min-w-0">
+                  <div class="fw-semibold text-truncate">{{ t.schedule__specialty__name }}</div>
+                  <div class="text-muted small">Inscripciones</div>
+                </div>
+                <span class="badge bg-primary fs-6">{{ t.total }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
 
-<div class="md:hidden space-y-3">
+<!-- ============ Detalle (móvil: tarjetas) ============ -->
+<div class="d-md-none vstack gap-3 mb-4">
   {% for r in rows %}
     <div class="card">
-      <p class="font-bold">{{ r.schedule__specialty__name }}</p>
-      <p class="text-sm text-gray-600">{{ r.participant__club__name }}</p>
-      <p class="text-lg font-bold text-blue-700 mt-1">{{ r.total }}</p>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="min-w-0">
+            <div class="badge bg-primary-subtle text-primary-emphasis mb-1">
+              <i class="bi bi-trophy"></i> {{ r.schedule__specialty__name }}
+            </div>
+            <div class="fw-semibold text-truncate">
+              <i class="bi bi-building"></i> {{ r.participant__club__name }}
+            </div>
+          </div>
+          <span class="badge bg-primary fs-6">{{ r.total }}</span>
+        </div>
+      </div>
     </div>
   {% empty %}
-    <p class="text-gray-500">Sin datos.</p>
+    <div class="card">
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-file-earmark-bar-graph fs-1 d-block mb-2 opacity-50"></i>
+        <p class="fw-semibold text-dark mb-1">Sin datos</p>
+        <p class="small mb-0">No hay inscripciones que coincidan con los filtros.</p>
+      </div>
+    </div>
   {% endfor %}
 </div>
+
+<!-- ============ Detalle (escritorio: tabla) ============ -->
+<div class="card d-none d-md-block">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">
+      <i class="bi bi-table me-1"></i> Detalle por club
+    </h5>
+    <span class="badge bg-secondary">{{ rows|length }} filas</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Especialidad</th>
+          <th>Club</th>
+          <th class="text-end">Inscritos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>
+              <span class="badge bg-primary-subtle text-primary-emphasis">
+                <i class="bi bi-trophy"></i> {{ r.schedule__specialty__name }}
+              </span>
+            </td>
+            <td class="fw-semibold">{{ r.participant__club__name }}</td>
+            <td class="text-end">
+              <span class="badge bg-primary fs-6">{{ r.total }}</span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="3" class="text-center py-5 text-muted">
+              <i class="bi bi-file-earmark-bar-graph fs-1 d-block mb-2 opacity-50"></i>
+              <p class="fw-semibold text-dark mb-1">Sin datos</p>
+              <p class="small mb-0">No hay inscripciones que coincidan con los filtros.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 {% endblock %}

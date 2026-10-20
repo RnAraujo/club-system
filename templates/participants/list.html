@@ -1,67 +1,161 @@
 {% extends 'base.html' %}
+{% block title %}Participantes{% endblock %}
 {% block content %}
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-  <h1 class="text-2xl font-bold">Participantes</h1>
-  <a href="{% url 'participants:create' %}" class="btn-primary w-full sm:w-auto">+ Nuevo participante</a>
+
+<!-- Encabezado -->
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">Participantes</h1>
+    <p class="page-subtitle mb-0">
+      Consulta, busca y administra los participantes registrados.
+    </p>
+  </div>
+  <a href="{% url 'participants:create' %}" class="btn btn-primary w-100 w-sm-auto">
+    <i class="bi bi-person-plus"></i> Nuevo participante
+  </a>
 </div>
 
-<form method="get" class="card mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por DNI o nombre"
-         class="input sm:col-span-2">
-  <select name="club" class="input">
-    <option value="">Todos los clubes</option>
-    {% for c in clubs %}
-      <option value="{{ c.id }}" {% if c.id|stringformat:'s' == selected_club %}selected{% endif %}>
-        {{ c.name }}
-      </option>
-    {% endfor %}
-  </select>
-  <button class="btn-primary sm:col-span-3">Filtrar</button>
+<!-- Filtros -->
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-5">
+        <label for="q" class="form-label">Buscar</label>
+        <input type="text" id="q" name="q" value="{{ q }}"
+               class="form-control"
+               placeholder="DNI, nombres o apellidos">
+      </div>
+      <div class="col-12 col-sm-4">
+        <label for="club" class="form-label">Club</label>
+        <select id="club" name="club" class="form-select">
+          <option value="">Todos los clubes</option>
+          {% for c in clubs %}
+            <option value="{{ c.id }}"
+              {% if c.id|stringformat:'s' == selected_club %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100">
+          <i class="bi bi-search"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </div>
 </form>
 
-<!-- Vista móvil: tarjetas -->
-<div class="md:hidden space-y-3">
+<!-- ============ Vista móvil: tarjetas ============ -->
+<div class="d-md-none vstack gap-3">
   {% for p in participants %}
     <div class="card">
-      <p class="font-bold">{{ p.full_name }}</p>
-      <p class="text-sm text-gray-600">DNI: {{ p.dni }}</p>
-      <p class="text-sm text-gray-600">Club: {{ p.club.name }}</p>
-      <a href="{% url 'participants:detail' p.pk %}"
-         class="btn-secondary mt-3 w-full">Ver detalle</a>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          <div class="min-w-0">
+            <div class="fw-semibold text-truncate">{{ p.last_name }}, {{ p.first_name }}</div>
+            <div class="text-muted small">
+              <i class="bi bi-building"></i> {{ p.club.name }}
+            </div>
+          </div>
+          {% if p.registrations_count %}
+            <span class="badge bg-primary text-nowrap">
+              {{ p.registrations_count }} insc.
+            </span>
+          {% else %}
+            <span class="badge bg-secondary text-nowrap">Sin insc.</span>
+          {% endif %}
+        </div>
+
+        <div class="row g-2 small mb-3">
+          <div class="col-6">
+            <div class="bg-light rounded p-2">
+              <div class="text-muted" style="font-size: .7rem;">DNI</div>
+              <div class="font-monospace fw-semibold">{{ p.dni }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="bg-light rounded p-2">
+              <div class="text-muted" style="font-size: .7rem;">Celular</div>
+              <div class="fw-semibold">{{ p.phone|default:"—" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{% url 'participants:detail' p.pk %}"
+             class="btn btn-outline-secondary btn-sm flex-fill">
+            <i class="bi bi-eye"></i> Ver
+          </a>
+          <a href="{% url 'participants:update' p.pk %}"
+             class="btn btn-primary btn-sm flex-fill">
+            <i class="bi bi-pencil"></i> Editar
+          </a>
+        </div>
+      </div>
     </div>
   {% empty %}
-    <p class="text-gray-500">Sin participantes.</p>
+    <div class="card">
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+        <p class="fw-semibold text-dark mb-1">Sin participantes</p>
+        <p class="small mb-0">No se encontraron participantes con esos filtros.</p>
+      </div>
+    </div>
   {% endfor %}
 </div>
 
-<!-- Vista escritorio: tabla -->
-<div class="hidden md:block card overflow-hidden p-0">
-  <table class="w-full text-sm">
-    <thead class="bg-gray-50 text-left">
-      <tr>
-        <th class="px-4 py-3">DNI</th>
-        <th class="px-4 py-3">Apellidos y nombres</th>
-        <th class="px-4 py-3">Club</th>
-        <th class="px-4 py-3">Celular</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% for p in participants %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3">{{ p.dni }}</td>
-          <td class="px-4 py-3">{{ p.last_name }}, {{ p.first_name }}</td>
-          <td class="px-4 py-3">{{ p.club.name }}</td>
-          <td class="px-4 py-3">{{ p.phone|default:"—" }}</td>
-          <td class="px-4 py-3 text-right">
-            <a href="{% url 'participants:detail' p.pk %}" class="text-blue-600 hover:underline">Ver</a>
-          </td>
+<!-- ============ Vista escritorio: tabla ============ -->
+<div class="card d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>DNI</th>
+          <th>Apellidos y nombres</th>
+          <th>Club</th>
+          <th>Celular</th>
+          <th class="text-center">Inscripciones</th>
+          <th class="text-end">Acciones</th>
         </tr>
-      {% empty %}
-        <tr><td colspan="5" class="text-center py-6 text-gray-500">Sin participantes.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for p in participants %}
+          <tr>
+            <td class="font-monospace small">{{ p.dni }}</td>
+            <td class="fw-semibold">{{ p.last_name }}, {{ p.first_name }}</td>
+            <td>{{ p.club.name }}</td>
+            <td>{{ p.phone|default:"—" }}</td>
+            <td class="text-center">
+              {% if p.registrations_count %}
+                <span class="badge bg-primary">{{ p.registrations_count }}</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis">0</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'participants:detail' p.pk %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-eye"></i> Ver
+                </a>
+                <a href="{% url 'participants:update' p.pk %}" class="btn btn-outline-primary">
+                  <i class="bi bi-pencil"></i> Editar
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+              <p class="fw-semibold text-dark mb-1">Sin participantes</p>
+              <p class="small mb-0">No se encontraron participantes con esos filtros.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 {% include 'partials/pagination.html' %}

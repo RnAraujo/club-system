@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-7">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'specialties:list' %}">Especialidades</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ form_title }}</li>
+      </ol>
+    </nav>
+
+    <div class="mb-4">
+      <h1 class="page-title mb-1">{{ form_title }}</h1>
+      <p class="page-subtitle mb-0">
+        Programa una especialidad para un día específico. El cupo se asigna automáticamente desde la especialidad.
+      </p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="card">
+        <div class="card-body p-4">
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <div>{{ form.non_field_errors.0 }}</div>
+            </div>
+          {% endif %}
+
+          {% if object %}
+            <!-- Info de la programación existente (si es edición) -->
+            <div class="alert alert-info d-flex align-items-start gap-2 small">
+              <i class="bi bi-info-circle-fill mt-1"></i>
+              <div>
+                <strong>Cupos actuales:</strong>
+                {{ object.available_slots }} disponibles de {{ object.specialty.max_participants }}.
+                {% if object.registrations.exists %}
+                  <br>
+                  <strong>Inscripciones registradas:</strong> {{ object.registrations.count }}.
+                  No se puede cambiar la especialidad ni la fecha mientras existan inscripciones.
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="{{ form.specialty.id_for_label }}" class="form-label fw-semibold">
+              {{ form.specialty.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.specialty }}
+            {% if form.specialty.errors %}
+              <div class="text-danger small mt-1 d-flex align-items-center gap-1">
+                <i class="bi bi-exclamation-circle"></i> {{ form.specialty.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-0">
+            <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.date.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.date }}
+            {% if form.date.help_text %}
+              <div class="form-text">{{ form.date.help_text }}</div>
+            {% endif %}
+            {% if form.date.errors %}
+              <div class="text-danger small mt-1 d-flex align-items-center gap-1">
+                <i class="bi bi-exclamation-circle"></i> {{ form.date.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <div class="card-footer bg-light d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2 py-3">
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}Inscripciones por día{% endblock %}
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb small mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'reports:index' %}">Reportes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Por día</li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">Inscripciones por día</h1>
+    <p class="page-subtitle mb-0">
+      Carga diaria del proceso de inscripción y su evolución.
+    </p>
+  </div>
+  <a href="{% url 'reports:export_by_day' %}?{{ request.GET.urlencode }}"
+     class="btn btn-success w-100 w-sm-auto">
+    <i class="bi bi-file-earmark-excel"></i> Exportar CSV
+  </a>
+</div>
+
+<!-- Métricas -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Total</div>
+        <div class="metric-value text-primary">{{ total_registrations }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Días con actividad</div>
+        <div class="metric-value text-success">{{ total_days }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Día con más</div>
+        <div class="metric-value text-info">{{ max_day }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6 col-sm-4">
+        <label class="form-label small fw-semibold">Desde</label>
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
+      </div>
+      <div class="col-6 col-sm-4">
+        <label class="form-label small fw-semibold">Hasta</label>
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
+      </div>
+      <div class="col-12 col-sm-4 d-flex align-items-end gap-2">
+        <button class="btn btn-primary flex-fill">
+          <i class="bi bi-funnel"></i> Filtrar
+        </button>
+        <a href="{% url 'reports:by_day' %}" class="btn btn-outline-secondary" title="Limpiar">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Gráfico de barras por día -->
+{% if rows %}
+  <div class="card mb-4">
+    <div class="card-header bg-white">
+      <h5 class="card-title mb-0">
+        <i class="bi bi-bar-chart-line me-1"></i> Distribución diaria
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="vstack gap-2">
+        {% for r in rows %}
+          <div class="d-flex align-items-center gap-2">
+            <div class="text-nowrap text-muted small" style="width: 110px;">
+              {{ r.date|date:"d/m/Y" }}
+              {% if r.date == today %}
+                <span class="badge bg-info ms-1">Hoy</span>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="progress" style="height: 22px;">
+                <div class="progress-bar bg-primary d-flex align-items-center justify-content-end pe-2 fw-semibold"
+                     role="progressbar"
+                     style="width: {{ r.pct }}%; min-width: 2.2rem;"
+                     aria-valuenow="{{ r.pct }}"
+                     aria-valuemin="0" aria-valuemax="100">
+                  {{ r.total }}
+                </div>
+              </div>
+            </div>
+            <div class="text-muted small text-nowrap" style="width: 60px; text-align: right;">
+              {{ r.pct }}%
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Tabla detallada -->
+<div class="card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">
+      <i class="bi bi-table me-1"></i> Detalle por día
+    </h5>
+    <span class="badge bg-secondary">{{ rows|length }} días</span>
+  </div>
+
+  <!-- Móvil -->
+  <div class="d-md-none p-3 vstack gap-3">
+    {% for r in rows %}
+      <div class="border rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-semibold">
+              <i class="bi bi-calendar3 me-1"></i>{{ r.date|date:"d/m/Y" }}
+            </div>
+            <div class="text-muted small">{{ r.date|date:"l"|capfirst }}</div>
+          </div>
+          <span class="badge bg-primary fs-6">{{ r.total }}</span>
+        </div>
+        {% if r.specialties %}
+          <div class="vstack gap-1 small">
+            {% for sp in r.specialties %}
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">
+                  <i class="bi bi-trophy"></i> {{ sp.schedule__specialty__name }}
+                </span>
+                <span class="fw-semibold">{{ sp.count }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+        <p class="fw-semibold text-dark mb-1">Sin datos</p>
+        <p class="small mb-0">No hay inscripciones que coincidan con los filtros.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Escritorio -->
+  <div class="d-none d-md-block table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Día</th>
+          <th class="text-center">Total</th>
+          <th>Especialidades (desglose)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="text-nowrap fw-semibold">
+              <i class="bi bi-calendar3 me-1 text-muted"></i>
+              {{ r.date|date:"d/m/Y" }}
+              {% if r.date == today %}
+                <span class="badge bg-info ms-1">Hoy</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ r.date|date:"l"|capfirst }}</td>
+            <td class="text-center">
+              <span class="badge bg-primary fs-6">{{ r.total }}</span>
+            </td>
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                {% for sp in r.specialties %}
+                  <span class="badge bg-light text-dark border">
+                    {{ sp.schedule__specialty__name }} · {{ sp.count }}
+                  </span>
+                {% empty %}
+                  <span class="text-muted small">—</span>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-5 text-muted">
+              <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+              <p class="fw-semibold text-dark mb-1">Sin datos</p>
+              <p class="small mb-0">No hay inscripciones que coincidan con los filtros.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
