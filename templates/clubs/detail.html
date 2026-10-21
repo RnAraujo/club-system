@@ -1,6 +1,10 @@
+{% extends 'base.html' %}
 {% block title %}{{ club.name }}{% endblock %}
 {% block content %}
 
+<!-- ============================
+     BREADCRUMB
+     ============================ -->
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb small mb-0">
     <li class="breadcrumb-item"><a href="{% url 'clubs:list' %}">Clubes</a></li>
@@ -8,12 +12,17 @@
   </ol>
 </nav>
 
+<!-- ============================
+     ENCABEZADO
+     ============================ -->
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
   <div class="min-w-0">
     <h1 class="page-title mb-1 text-truncate">{{ club.name }}</h1>
     <p class="page-subtitle mb-0">
       <i class="bi bi-geo-alt"></i> {{ club.district.name }}
-      <span class="badge bg-primary-subtle text-primary-emphasis ms-1">Zona {{ club.zone }}</span>
+      <span class="badge bg-primary-subtle text-primary-emphasis ms-1">
+        Zona {{ club.zone }}
+      </span>
     </p>
   </div>
   <div class="d-flex gap-2 w-100 w-sm-auto">
@@ -28,28 +37,29 @@
   </div>
 </div>
 
-
-<!-- Métricas -->
+<!-- ============================
+     MÉTRICAS
+     ============================ -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-4">
-    <div class="card text-center h-100">
-      <div class="card-body">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
         <div class="metric-value text-primary">{{ participants_total }}</div>
         <div class="metric-label">Participantes</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-4">
-    <div class="card text-center h-100">
-      <div class="card-body">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
         <div class="metric-value text-success">{{ directives|length }}</div>
         <div class="metric-label">Directivos</div>
       </div>
     </div>
   </div>
   <div class="col-12 col-md-4">
-    <div class="card text-center h-100">
-      <div class="card-body">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body text-center">
         <div class="metric-value text-info">{{ registrations_total }}</div>
         <div class="metric-label">Inscripciones</div>
       </div>
@@ -57,84 +67,191 @@
   </div>
 </div>
 
-<!-- Directiva -->
-<div class="card mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0">Directiva</h5>
-    <a href="{% url 'clubs:directive_create' %}?club={{ club.pk }}"
-       class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-plus-lg"></i> Agregar
-    </a>
+<div class="row g-4">
+
+  <!-- ============================
+       COLUMNA IZQUIERDA
+       ============================ -->
+  <div class="col-12 col-lg-8">
+
+    <!-- ===== Directiva ===== -->
+    <div class="card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-person-vcard me-1"></i> Directiva
+        </h5>
+        {% if user.is_registrador %}
+          <a href="{% url 'clubs:directive_create' %}?club={{ club.pk }}"
+             class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Agregar
+          </a>
+        {% endif %}
+      </div>
+
+      {% if directives %}
+        <ul class="list-group list-group-flush">
+          {% for d in directives %}
+            <li class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">
+                  {{ d.last_name }}, {{ d.first_name }}
+                </div>
+                <div class="text-muted small">
+                  DNI: <span class="font-monospace">{{ d.dni }}</span>
+                  {% if d.phone %}
+                    · <i class="bi bi-telephone"></i> {{ d.phone }}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary-subtle text-primary-emphasis">
+                  {{ d.get_position_display }}
+                </span>
+                {% if user.is_registrador %}
+                  <div class="btn-group btn-group-sm">
+                    <a href="{% url 'clubs:directive_update' d.pk %}"
+                       class="btn btn-outline-secondary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'clubs:directive_delete' d.pk %}"
+                       class="btn btn-outline-danger" title="Eliminar">
+                      <i class="bi bi-trash"></i>
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-person-vcard fs-1 d-block mb-2 opacity-50"></i>
+          <p class="fw-semibold text-dark mb-1">Sin directiva registrada</p>
+          <p class="small mb-0">
+            {% if user.is_registrador %}
+              Agrega el primer directivo para este club.
+            {% else %}
+              Este club aún no tiene directiva registrada.
+            {% endif %}
+          </p>
+          {% if user.is_registrador %}
+            <a href="{% url 'clubs:directive_create' %}?club={{ club.pk }}"
+               class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i> Agregar primer directivo
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ===== Participantes ===== -->
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-people me-1"></i> Participantes
+        </h5>
+        {% if participants_total > 10 %}
+          <a href="{% url 'participants:list' %}?club={{ club.pk }}"
+             class="small fw-semibold text-decoration-none">
+            Ver todos ({{ participants_total }}) <i class="bi bi-arrow-right"></i>
+          </a>
+        {% endif %}
+      </div>
+
+      {% if participants %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>DNI</th>
+                <th>Apellidos y nombres</th>
+                <th class="d-none d-sm-table-cell">Celular</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in participants %}
+                <tr>
+                  <td class="font-monospace small">{{ p.dni }}</td>
+                  <td class="fw-semibold">{{ p.last_name }}, {{ p.first_name }}</td>
+                  <td class="d-none d-sm-table-cell">{{ p.phone|default:"—" }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'participants:detail' p.pk %}"
+                       class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-eye"></i> Ver
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+          <p class="fw-semibold text-dark mb-1">Sin participantes</p>
+          <p class="small mb-0">Este club aún no tiene participantes registrados.</p>
+          {% if user.is_registrador %}
+            <a href="{% url 'participants:create' %}?club={{ club.pk }}"
+               class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-person-plus"></i> Registrar primer participante
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
   </div>
 
-  {% if directives %}
-    <ul class="list-group list-group-flush">
-      {% for d in directives %}
-        <li class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+  <!-- ============================
+       COLUMNA DERECHA
+       ============================ -->
+  <div class="col-12 col-lg-4">
+
+    <!-- ===== Información del club ===== -->
+    <div class="card mb-4">
+      <div class="card-header bg-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-info-circle me-1"></i> Información
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="vstack gap-3 small">
           <div>
-            <div class="fw-semibold">{{ d.last_name }}, {{ d.first_name }}</div>
-            <div class="text-muted small">
-              DNI: {{ d.dni }}{% if d.phone %} · Cel: {{ d.phone }}{% endif %}
+            <div class="text-muted">Distrito Misionero</div>
+            <div class="fw-semibold">{{ club.district.name }}</div>
+          </div>
+          <div>
+            <div class="text-muted">Zona</div>
+            <div class="fw-semibold">
+              <span class="badge bg-primary-subtle text-primary-emphasis">
+                Zona {{ club.zone }}
+              </span>
             </div>
           </div>
-          <span class="badge bg-primary">{{ d.get_position_display }}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <div class="card-body text-center text-muted py-5">
-      <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
-      <p class="fw-semibold text-dark mb-1">Sin directiva registrada</p>
-      <p class="small mb-0">Agrega el primer directivo para este club.</p>
+          <div>
+            <div class="text-muted">Nombre del club</div>
+            <div class="fw-semibold">{{ club.name }}</div>
+          </div>
+          <div>
+            <div class="text-muted">Creado</div>
+            <div class="fw-semibold">
+              <i class="bi bi-calendar3 me-1"></i>
+              {{ club.created_at|date:"d/m/Y" }}
+            </div>
+          </div>
+          <div>
+            <div class="text-muted">Última actualización</div>
+            <div class="fw-semibold">
+              <i class="bi bi-clock-history me-1"></i>
+              {{ club.updated_at|date:"d/m/Y H:i" }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  {% endif %}
-</div>
 
-<!-- Participantes -->
-<div class="card">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <h5 class="card-title mb-0">Participantes</h5>
-    {% if participants_total > 10 %}
-      <a href="{% url 'participants:list' %}?club={{ club.pk }}"
-         class="small fw-semibold text-decoration-none">
-        Ver todos ({{ participants_total }})
-      </a>
-    {% endif %}
   </div>
-
-  {% if participants %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>DNI</th>
-            <th>Apellidos y nombres</th>
-            <th class="d-none d-sm-table-cell">Celular</th>
-            <th class="text-end">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in participants %}
-            <tr>
-              <td class="font-monospace small">{{ p.dni }}</td>
-              <td class="fw-semibold">{{ p.last_name }}, {{ p.first_name }}</td>
-              <td class="d-none d-sm-table-cell">{{ p.phone|default:"—" }}</td>
-              <td class="text-end">
-                <a href="{% url 'participants:detail' p.pk %}" class="btn btn-sm btn-outline-secondary">
-                  <i class="bi bi-eye"></i> Ver
-                </a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="card-body text-center text-muted py-5">
-      <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
-      <p class="fw-semibold text-dark mb-1">Sin participantes</p>
-      <p class="small mb-0">Este club aún no tiene participantes registrados.</p>
-    </div>
-  {% endif %}
 </div>
+
 {% endblock %}

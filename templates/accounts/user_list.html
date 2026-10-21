@@ -2,11 +2,14 @@
 {% block title %}Usuarios{% endblock %}
 {% block content %}
 
+<!-- ============================
+     ENCABEZADO
+     ============================ -->
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
   <div>
     <h1 class="page-title mb-1">Usuarios</h1>
     <p class="page-subtitle mb-0">
-      Administra los usuarios del sistema, sus roles y sus clubes asignados.
+      Administra los usuarios del sistema, sus roles, clubes y contraseñas.
     </p>
   </div>
   <a href="{% url 'accounts:register' %}" class="btn btn-primary w-100 w-sm-auto">
@@ -14,14 +17,17 @@
   </a>
 </div>
 
-<!-- Filtros -->
+<!-- ============================
+     FILTROS
+     ============================ -->
 <form method="get" class="card mb-4">
   <div class="card-body">
     <div class="row g-3">
       <div class="col-12 col-sm-6">
         <label for="q" class="form-label small fw-semibold">Buscar</label>
         <input type="text" id="q" name="q" value="{{ q }}"
-               class="form-control" placeholder="Usuario, email o nombre">
+               class="form-control"
+               placeholder="Usuario, email o nombre">
       </div>
       <div class="col-12 col-sm-4">
         <label for="role" class="form-label small fw-semibold">Rol</label>
@@ -43,22 +49,36 @@
   </div>
 </form>
 
-<!-- Móvil -->
+<!-- ============================
+     VISTA MÓVIL: TARJETAS
+     ============================ -->
 <div class="d-md-none vstack gap-3">
   {% for u in users %}
     <div class="card">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-          <div class="min-w-0">
-            <div class="fw-semibold text-truncate">{{ u.get_full_name|default:u.username }}</div>
-            <div class="text-muted small font-monospace">@{{ u.username }}</div>
+
+        <!-- Cabecera -->
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold flex-shrink-0"
+                  style="width: 44px; height: 44px; font-size: .95rem;">
+              {{ u.username|slice:":1"|upper }}
+            </span>
+            <div class="min-w-0">
+              <div class="fw-semibold text-truncate">
+                {{ u.get_full_name|default:u.username }}
+              </div>
+              <div class="text-muted small font-monospace">@{{ u.username }}</div>
+            </div>
           </div>
           {% if u.is_active %}
-            <span class="badge bg-success">Activo</span>
+            <span class="badge bg-success text-nowrap">Activo</span>
           {% else %}
-            <span class="badge bg-secondary">Inactivo</span>
+            <span class="badge bg-secondary text-nowrap">Inactivo</span>
           {% endif %}
         </div>
+
+        <!-- Datos -->
         <div class="row g-2 small mb-3">
           <div class="col-6">
             <div class="bg-light rounded p-2">
@@ -73,9 +93,24 @@
             </div>
           </div>
         </div>
-        <a href="{% url 'accounts:user_update' u.pk %}" class="btn btn-outline-primary btn-sm w-100">
-          <i class="bi bi-pencil"></i> Editar
-        </a>
+
+        <!-- Acciones -->
+        <div class="d-grid gap-2">
+          <a href="{% url 'accounts:user_update' u.pk %}"
+             class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil"></i> Editar datos
+          </a>
+          <form method="post"
+                action="{% url 'accounts:user_reset_password' u.pk %}"
+                class="m-0"
+                onsubmit="return confirm('¿Restablecer la contraseña de {{ u.username }}? Se generará una nueva aleatoria.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+              <i class="bi bi-key-fill"></i> Restablecer contraseña
+            </button>
+          </form>
+        </div>
+
       </div>
     </div>
   {% empty %}
@@ -89,7 +124,9 @@
   {% endfor %}
 </div>
 
-<!-- Escritorio -->
+<!-- ============================
+     VISTA ESCRITORIO: TABLA
+     ============================ -->
 <div class="card d-none d-md-block">
   <div class="table-responsive">
     <table class="table table-hover mb-0 align-middle">
@@ -107,17 +144,33 @@
         {% for u in users %}
           <tr>
             <td>
-              <div class="fw-semibold">{{ u.get_full_name|default:u.username }}</div>
-              <small class="text-muted font-monospace">@{{ u.username }}</small>
+              <div class="d-flex align-items-center gap-2">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold flex-shrink-0"
+                      style="width: 36px; height: 36px; font-size: .85rem;">
+                  {{ u.username|slice:":1"|upper }}
+                </span>
+                <div class="min-w-0">
+                  <div class="fw-semibold text-truncate">
+                    {{ u.get_full_name|default:u.username }}
+                  </div>
+                  <small class="text-muted font-monospace">@{{ u.username }}</small>
+                </div>
+              </div>
             </td>
             <td>{{ u.email|default:"—" }}</td>
             <td>
               {% if u.role == 'admin' %}
-                <span class="badge bg-danger-subtle text-danger-emphasis">{{ u.get_role_display }}</span>
+                <span class="badge bg-danger-subtle text-danger-emphasis">
+                  {{ u.get_role_display }}
+                </span>
               {% elif u.role == 'registrador' %}
-                <span class="badge bg-primary-subtle text-primary-emphasis">{{ u.get_role_display }}</span>
+                <span class="badge bg-primary-subtle text-primary-emphasis">
+                  {{ u.get_role_display }}
+                </span>
               {% else %}
-                <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ u.get_role_display }}</span>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                  {{ u.get_role_display }}
+                </span>
               {% endif %}
             </td>
             <td>{{ u.club.name|default:"—" }}</td>
@@ -129,9 +182,21 @@
               {% endif %}
             </td>
             <td class="text-end">
-              <a href="{% url 'accounts:user_update' u.pk %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-pencil"></i> Editar
-              </a>
+              <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'accounts:user_update' u.pk %}"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-pencil"></i> Editar
+                </a>
+                <form method="post"
+                      action="{% url 'accounts:user_reset_password' u.pk %}"
+                      class="m-0"
+                      onsubmit="return confirm('¿Restablecer la contraseña de {{ u.username }}? Se generará una nueva aleatoria.');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-key-fill"></i> Restablecer
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         {% empty %}
@@ -149,4 +214,5 @@
 </div>
 
 {% include 'partials/pagination.html' %}
+
 {% endblock %}

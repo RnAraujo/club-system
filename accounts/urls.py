@@ -12,4 +12,5 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('users/', views.UserListView.as_view(), name='user_list'),
     path('users/<int:pk>/update/', views.UserUpdateView.as_view(), name='user_update'),
+    path('users/<int:pk>/reset-password/', views.admin_reset_password_view, name='user_reset_password'),
 ]

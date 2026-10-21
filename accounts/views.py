@@ -3,11 +3,15 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView, UpdateView
 from django.contrib import messages
 from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect
 
 from .forms import LoginForm, RegisterForm, UserUpdateForm
 from .mixins import AdminRequiredMixin
 from .models import User
 
+from django.utils.crypto import get_random_string
+from django.views.decorators.http import require_POST
+from django.core.exceptions import PermissionDenied
 
 class CustomLoginView(LoginView):
     form_class = LoginForm
@@ -81,3 +85,26 @@ class UserUpdateView(AdminRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Usuario actualizado correctamente.')
         return super().form_valid(form)
+
+@require_POST
+def admin_reset_password_view(request, pk):
+    """Solo el admin puede restablecer la contraseña de un usuario."""
+    if not request.user.is_admin:
+        raise PermissionDenied
+
+    user_obj = get_object_or_404(User, pk=pk)
+
+    # Contraseña legible (sin caracteres confundibles: 0/O, 1/l/I)
+    chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    new_password = get_random_string(length=10, allowed_chars=chars)
+
+    user_obj.set_password(new_password)
+    user_obj.save(update_fields=['password'])
+
+    messages.success(
+        request,
+        f'Contraseña de "{user_obj.username}" restablecida. '
+        f'Nueva contraseña: {new_password} — '
+        f'cópiala ahora, no se volverá a mostrar.'
+    )
+    return redirect('accounts:user_list')
