@@ -6,11 +6,10 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.utils import timezone
 
-from accounts.mixins import AdminRequiredMixin
 from clubs.models import Club
 from participants.models import Participant
 from specialties.models import Specialty, SpecialtySchedule
-from registrations.models import Registration
+from registrations.models import Registration, RegistrationProcess
 
 
 # ============================================================
@@ -18,12 +17,15 @@ from registrations.models import Registration
 # ============================================================
 
 def _base_registration_qs(user):
-    """Queryset base de inscripciones aplicando restricción por rol."""
+    """Inscripciones con scoping por rol."""
     qs = Registration.objects.select_related(
-        'participant__club', 'schedule__specialty'
+        'participant__club', 'schedule__specialty', 'registered_by',
     )
-    if not user.is_admin and user.club_id:
-        qs = qs.filter(participant__club_id=user.club_id)
+    if not user.is_admin:
+        if user.club_id:
+            qs = qs.filter(participant__club_id=user.club_id)
+        else:
+            qs = qs.none()
     return qs
 
 
@@ -45,13 +47,21 @@ def _apply_common_filters(qs, request, include_club=True):
     if date_to:
         qs = qs.filter(date__lte=date_to)
 
+    q = request.GET.get('q')
+    if q:
+        qs = qs.filter(
+            Q(participant__dni__icontains=q) |
+            Q(participant__first_name__icontains=q) |
+            Q(participant__last_name__icontains=q)
+        )
+
     return qs
 
 
 def _csv_response(filename, headers, rows):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    response.write('\ufeff')  # BOM para abrir correctamente en Excel
+    response.write('\ufeff')
     writer = csv.writer(response)
     writer.writerow(headers)
     for r in rows:
@@ -98,14 +108,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             .order_by('-created_at')[:8]
         )
         if u.is_admin:
-            from registrations.models import RegistrationProcess
             ctx['processes'] = (
                 RegistrationProcess.objects
                 .select_related('club', 'closed_by')
                 .order_by('club__name')
             )
         elif u.club_id:
-            from registrations.models import RegistrationProcess
             try:
                 ctx['current_process'] = RegistrationProcess.objects.get(club_id=u.club_id)
             except RegistrationProcess.DoesNotExist:
@@ -140,7 +148,7 @@ class ReportsIndexView(LoginRequiredMixin, TemplateView):
 
 
 # ============================================================
-# Reporte 1 — Por especialidad y club (registrador)
+# Reporte 1 — Por especialidad y club
 # ============================================================
 
 class ReportBySpecialtyAndClubView(LoginRequiredMixin, TemplateView):
@@ -155,7 +163,6 @@ class ReportBySpecialtyAndClubView(LoginRequiredMixin, TemplateView):
         qs = self.get_qs()
         u = self.request.user
 
-        # Filas (especialidad x club)
         rows = (
             qs.values(
                 'schedule__specialty__name',
@@ -167,7 +174,6 @@ class ReportBySpecialtyAndClubView(LoginRequiredMixin, TemplateView):
             .order_by('schedule__specialty__name', 'participant__club__name')
         )
 
-        # Totales por especialidad
         totals_by_specialty = (
             qs.values(
                 'schedule__specialty__name',
@@ -196,41 +202,49 @@ class ReportBySpecialtyAndClubView(LoginRequiredMixin, TemplateView):
             ctx['clubs'] = Club.objects.filter(pk=u.club_id)
         else:
             ctx['clubs'] = Club.objects.none()
-
         return ctx
 
 
 # ============================================================
-# Reporte 2 — Total por especialidad (admin)
+# Reporte 2 — Total por especialidad + listado de niños inscritos
 # ============================================================
 
-class ReportBySpecialtyView(AdminRequiredMixin, TemplateView):
+class ReportBySpecialtyView(LoginRequiredMixin, TemplateView):
     template_name = 'reports/by_specialty.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        u = self.request.user
 
+        # Inscripciones con scoping por rol
+        regs = _base_registration_qs(u)
+
+        # --- Resumen por especialidad ---
         rows = list(
             Specialty.objects
             .annotate(
-                total_registered=Count('schedules__registrations', distinct=True),
+                total_registered_global=Count('schedules__registrations', distinct=True),
                 total_schedules=Count('schedules', distinct=True),
             )
-            .order_by('-total_registered', 'name')
+            .order_by('-total_registered_global', 'name')
         )
 
-        # Cupos disponibles agregados + % de ocupación
         for row in rows:
-            schedules = SpecialtySchedule.objects.filter(specialty=row)
-            total_slots = sum(s.available_slots for s in schedules)
-            total_capacity = row.max_participants * row.total_schedules
-            row.total_available = total_slots
-            row.total_capacity = total_capacity
-            if total_capacity > 0:
-                row.occupancy_pct = round((row.total_registered / total_capacity) * 100)
+            # Si no es admin, recalcular con el queryset scoped
+            if u.is_admin:
+                row.total_registered = row.total_registered_global
             else:
-                row.occupancy_pct = 0
+                row.total_registered = regs.filter(schedule__specialty=row).count()
 
+            schedules = SpecialtySchedule.objects.filter(specialty=row)
+            row.total_available = sum(s.available_slots for s in schedules)
+            row.total_capacity = row.max_participants * row.total_schedules
+            row.occupancy_pct = (
+                round((row.total_registered / row.total_capacity) * 100)
+                if row.total_capacity else 0
+            )
+
+        # --- Detalle por programación ---
         schedules = (
             SpecialtySchedule.objects
             .select_related('specialty')
@@ -238,10 +252,32 @@ class ReportBySpecialtyView(AdminRequiredMixin, TemplateView):
             .order_by('date', 'specialty__name')
         )
 
+        # --- Listado de niños inscritos (filtrable) ---
+        enrolled = regs.order_by(
+            'schedule__specialty__name',
+            'schedule__date',
+            'participant__last_name',
+            'participant__first_name',
+        )
+        enrolled = _apply_common_filters(enrolled, self.request, include_club=False)
+
+        specialty_id = self.request.GET.get('specialty')
+
         ctx.update({
             'rows': rows,
             'schedules': schedules,
-            'total_registrations': Registration.objects.count(),
+            'enrolled': enrolled,
+            'enrolled_count': enrolled.count(),
+            'specialties': Specialty.objects.all(),
+            'selected_specialty': specialty_id or '',
+            'selected_specialty_obj': (
+                Specialty.objects.filter(pk=specialty_id).first()
+                if specialty_id else None
+            ),
+            'q': self.request.GET.get('q', ''),
+            'date_from': self.request.GET.get('date_from', ''),
+            'date_to': self.request.GET.get('date_to', ''),
+            'total_registrations': regs.count(),
             'total_schedules': SpecialtySchedule.objects.count(),
             'total_specialties': Specialty.objects.count(),
         })
@@ -249,14 +285,14 @@ class ReportBySpecialtyView(AdminRequiredMixin, TemplateView):
 
 
 # ============================================================
-# Reporte 3 — Inscripciones por día (admin)
+# Reporte 3 — Inscripciones por día
 # ============================================================
 
-class ReportByDayView(AdminRequiredMixin, TemplateView):
+class ReportByDayView(LoginRequiredMixin, TemplateView):
     template_name = 'reports/by_day.html'
 
     def get_qs(self):
-        qs = Registration.objects.all()
+        qs = _base_registration_qs(self.request.user)
         date_from = self.request.GET.get('date_from')
         if date_from:
             qs = qs.filter(date__gte=date_from)
@@ -275,7 +311,6 @@ class ReportByDayView(AdminRequiredMixin, TemplateView):
             .order_by('-date')
         )
 
-        # Desglose por especialidad para cada día
         for r in rows:
             r['specialties'] = list(
                 qs.filter(date=r['date'])
@@ -285,8 +320,6 @@ class ReportByDayView(AdminRequiredMixin, TemplateView):
             )
 
         max_day = max((r['total'] for r in rows), default=1)
-
-        # Para la barra: % relativo respecto al día con más inscripciones
         for r in rows:
             r['pct'] = round((r['total'] / max_day) * 100) if max_day else 0
 
@@ -330,24 +363,26 @@ def export_by_specialty_club_csv(request):
 
 
 def export_by_specialty_csv(request):
+    """Resumen agregado por especialidad, con scoping por rol."""
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-    if not request.user.is_admin:
-        return redirect('reports:index')
+
+    u = request.user
+    regs = _base_registration_qs(u)
 
     rows = []
     for s in Specialty.objects.annotate(
-        total_registered=Count('schedules__registrations', distinct=True),
         total_schedules=Count('schedules', distinct=True),
     ).order_by('name'):
+        total_registered = regs.filter(schedule__specialty=s).count()
         total_capacity = s.max_participants * s.total_schedules
         rows.append([
             s.name,
             s.max_participants,
             s.total_schedules,
-            s.total_registered,
+            total_registered,
             total_capacity,
-            total_capacity - s.total_registered,
+            total_capacity - total_registered,
         ])
 
     return _csv_response(
@@ -358,13 +393,41 @@ def export_by_specialty_csv(request):
     )
 
 
+def export_enrolled_csv(request):
+    """Listado de niños inscritos, filtrable, con scoping por rol."""
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+
+    qs = _base_registration_qs(request.user)
+    qs = _apply_common_filters(qs, request, include_club=False)
+    qs = qs.order_by(
+        'schedule__specialty__name',
+        'schedule__date',
+        'participant__last_name',
+    )
+
+    rows = qs.values_list(
+        'schedule__specialty__name',
+        'schedule__date',
+        'participant__last_name',
+        'participant__first_name',
+        'participant__dni',
+        'participant__club__name',
+        'registered_by__username',
+    )
+
+    return _csv_response(
+        'ninos_inscritos.csv',
+        ['Especialidad', 'Fecha', 'Apellidos', 'Nombres', 'DNI', 'Club', 'Registrado por'],
+        rows,
+    )
+
+
 def export_by_day_csv(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-    if not request.user.is_admin:
-        return redirect('reports:index')
 
-    qs = Registration.objects.all()
+    qs = _base_registration_qs(request.user)
     date_from = request.GET.get('date_from')
     if date_from:
         qs = qs.filter(date__gte=date_from)
@@ -372,7 +435,7 @@ def export_by_day_csv(request):
     if date_to:
         qs = qs.filter(date__lte=date_to)
 
-    rows = qs.values_list('date').annotate(total=Count('id')).order_by('-date')
+    rows = qs.values('date').annotate(total=Count('id')).order_by('-date')
     return _csv_response(
         'inscripciones_por_dia.csv',
         ['Fecha', 'Total inscripciones'],

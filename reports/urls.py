@@ -12,5 +12,6 @@ urlpatterns = [
 
     path('export/by-specialty-club.csv', views.export_by_specialty_club_csv, name='export_specialty_club'),
     path('export/by-specialty.csv', views.export_by_specialty_csv, name='export_specialty'),
+    path('export/enrolled.csv', views.export_enrolled_csv, name='export_enrolled'),
     path('export/by-day.csv', views.export_by_day_csv, name='export_by_day'),
 ]

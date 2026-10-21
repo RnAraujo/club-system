@@ -176,18 +176,16 @@
               </a>
             </li>
 
-            {% if user.is_admin %}
-              <li>
-                <a class="dropdown-item" href="{% url 'reports:by_specialty' %}">
-                  <i class="bi bi-trophy me-2"></i> Total por especialidad
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'reports:by_day' %}">
-                  <i class="bi bi-calendar-week me-2"></i> Inscripciones por día
-                </a>
-              </li>
-            {% endif %}
+            <li>
+              <a class="dropdown-item" href="{% url 'reports:by_specialty' %}">
+                <i class="bi bi-trophy me-2"></i> Total por especialidad
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'reports:by_day' %}">
+                <i class="bi bi-calendar-week me-2"></i> Inscripciones por día
+              </a>
+            </li>
           </ul>
         </li>
 

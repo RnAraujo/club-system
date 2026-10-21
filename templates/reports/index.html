@@ -77,7 +77,7 @@
   <!-- Reporte 2 -->
   <div class="col-12 col-lg-6">
     <a href="{% url 'reports:by_specialty' %}"
-       class="card h-100 text-decoration-none text-dark card-hover {% if not user.is_admin %}opacity-75{% endif %}">
+      class="card h-100 text-decoration-none text-dark card-hover">
       <div class="card-body d-flex gap-3">
         <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success flex-shrink-0"
               style="width: 56px; height: 56px;">
@@ -86,10 +86,10 @@
         <div class="min-w-0">
           <div class="d-flex align-items-center gap-2 mb-1">
             <h5 class="mb-0">Total por especialidad</h5>
-            <span class="badge bg-danger-subtle text-danger-emphasis">Admin</span>
+            <span class="badge bg-primary-subtle text-primary-emphasis">Todos</span>
           </div>
           <p class="text-muted small mb-2">
-            Visualiza la ocupación global de cada especialidad, cupos disponibles y porcentaje de uso.
+            Ocupación de cada especialidad con el listado completo de niños inscritos.
           </p>
           <span class="small text-primary fw-semibold">
             Ver reporte <i class="bi bi-arrow-right"></i>
@@ -102,7 +102,7 @@
   <!-- Reporte 3 -->
   <div class="col-12 col-lg-6">
     <a href="{% url 'reports:by_day' %}"
-       class="card h-100 text-decoration-none text-dark card-hover {% if not user.is_admin %}opacity-75{% endif %}">
+      class="card h-100 text-decoration-none text-dark card-hover">
       <div class="card-body d-flex gap-3">
         <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle text-warning flex-shrink-0"
               style="width: 56px; height: 56px;">
@@ -111,10 +111,10 @@
         <div class="min-w-0">
           <div class="d-flex align-items-center gap-2 mb-1">
             <h5 class="mb-0">Inscripciones por día</h5>
-            <span class="badge bg-danger-subtle text-danger-emphasis">Admin</span>
+            <span class="badge bg-primary-subtle text-primary-emphasis">Todos</span>
           </div>
           <p class="text-muted small mb-2">
-            Identifica la carga diaria del proceso de inscripción y su evolución en el tiempo.
+            Carga diaria del proceso de inscripción y su evolución en el tiempo.
           </p>
           <span class="small text-primary fw-semibold">
             Ver reporte <i class="bi bi-arrow-right"></i>
