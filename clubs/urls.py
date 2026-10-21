@@ -15,4 +15,10 @@ urlpatterns = [
     path('directives/create/', views.DirectiveCreateView.as_view(), name='directive_create'),
     path('directives/<int:pk>/update/', views.DirectiveUpdateView.as_view(), name='directive_update'),
     path('directives/<int:pk>/delete/', views.DirectiveDeleteView.as_view(), name='directive_delete'),
+
+    # Distritos misioneros
+    path('districts/', views.DistrictListView.as_view(), name='district_list'),
+    path('districts/create/', views.DistrictCreateView.as_view(), name='district_create'),
+    path('districts/<int:pk>/update/', views.DistrictUpdateView.as_view(), name='district_update'),
+    path('districts/<int:pk>/delete/', views.DistrictDeleteView.as_view(), name='district_delete'),
 ]

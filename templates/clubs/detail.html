@@ -1,4 +1,3 @@
-{% extends 'base.html' %}
 {% block title %}{{ club.name }}{% endblock %}
 {% block content %}
 
@@ -10,23 +9,25 @@
 </nav>
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
-  <div>
-    <h1 class="page-title mb-1">{{ club.name }}</h1>
-    <p class="page-subtitle mb-0">Zona: {{ club.zone }}</p>
+  <div class="min-w-0">
+    <h1 class="page-title mb-1 text-truncate">{{ club.name }}</h1>
+    <p class="page-subtitle mb-0">
+      <i class="bi bi-geo-alt"></i> {{ club.district.name }}
+      <span class="badge bg-primary-subtle text-primary-emphasis ms-1">Zona {{ club.zone }}</span>
+    </p>
   </div>
   <div class="d-flex gap-2 w-100 w-sm-auto">
-    <div class="d-flex gap-2 w-100 w-sm-auto">
-      <a href="{% url 'clubs:list' %}" class="btn btn-outline-secondary flex-fill flex-sm-grow-0">
-        <i class="bi bi-arrow-left"></i> Volver
+    <a href="{% url 'clubs:list' %}" class="btn btn-outline-secondary flex-fill flex-sm-grow-0">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    {% if user.is_admin %}
+      <a href="{% url 'clubs:update' club.pk %}" class="btn btn-primary flex-fill flex-sm-grow-0">
+        <i class="bi bi-pencil"></i> Editar
       </a>
-      {% if user.is_admin %}
-        <a href="{% url 'clubs:update' club.pk %}" class="btn btn-primary flex-fill flex-sm-grow-0">
-          <i class="bi bi-pencil"></i> Editar
-        </a>
-      {% endif %}
-    </div>
+    {% endif %}
   </div>
 </div>
+
 
 <!-- Métricas -->
 <div class="row g-3 mb-4">

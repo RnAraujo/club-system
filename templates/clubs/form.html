@@ -5,7 +5,6 @@
 <div class="row justify-content-center">
   <div class="col-12 col-lg-8 col-xl-7">
 
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb small mb-0">
         <li class="breadcrumb-item"><a href="{% url 'clubs:list' %}">Clubes</a></li>
@@ -13,13 +12,11 @@
       </ol>
     </nav>
 
-    <!-- Encabezado -->
     <div class="mb-4">
       <h1 class="page-title mb-1">{{ form_title }}</h1>
       <p class="page-subtitle mb-0">Completa la información y guarda los cambios.</p>
     </div>
 
-    <!-- Formulario -->
     <form method="post" novalidate>
       {% csrf_token %}
 
@@ -27,9 +24,9 @@
         <div class="card-body p-4">
 
           {% if form.non_field_errors %}
-            <div class="alert alert-danger d-flex align-items-center gap-2">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <div>{{ form.non_field_errors.0 }}</div>
+            <div class="alert alert-danger d-flex align-items-start gap-2">
+              <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+              <div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
             </div>
           {% endif %}
 
@@ -39,21 +36,16 @@
                 {{ field.label }}
                 {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
               </label>
-
               {{ field }}
-
-              {% if field.help_text %}
-                <div class="form-text">{{ field.help_text }}</div>
-              {% endif %}
-
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
               {% if field.errors %}
                 <div class="text-danger small mt-1 d-flex align-items-center gap-1">
-                  <i class="bi bi-exclamation-circle"></i>
-                  <span>{{ field.errors.0 }}</span>
+                  <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
                 </div>
               {% endif %}
             </div>
           {% endfor %}
+
         </div>
 
         <div class="card-footer bg-light d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2 py-3">
@@ -64,6 +56,7 @@
         </div>
       </div>
     </form>
+
   </div>
 </div>
 {% endblock %}

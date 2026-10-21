@@ -1,19 +1,58 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+class MissionaryDistrict(models.Model):
+    """Distrito Misionero — agrupa a varios clubes."""
+    name = models.CharField(
+        max_length=150, unique=True,
+        verbose_name='Distrito Misionero',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Distrito Misionero'
+        verbose_name_plural = 'Distritos Misioneros'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Club(models.Model):
-    name = models.CharField(max_length=150, unique=True, verbose_name='Nombre')
-    zone = models.CharField(max_length=100, verbose_name='Zona')
+    district = models.ForeignKey(
+        MissionaryDistrict,
+        on_delete=models.PROTECT,
+        related_name='clubs',
+        verbose_name='Distrito Misionero',
+    )
+    name = models.CharField(max_length=150, verbose_name='Nombre del club')
+    zone = models.PositiveSmallIntegerField(
+        verbose_name='Zona',
+        validators=[MinValueValidator(1), MaxValueValidator(99)],
+        help_text='Número de zona (1, 2, 3, ...)',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Club'
         verbose_name_plural = 'Clubes'
-        ordering = ['name']
+        ordering = ['district__name', 'zone', 'name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['district', 'name'],
+                name='unique_club_name_per_district',
+                violation_error_message='Ya existe un club con ese nombre en este distrito.',
+            )
+        ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} — Zona {self.zone}"
+
+    @property
+    def full_label(self):
+        return f"{self.district.name} · Zona {self.zone} · {self.name}"
 
 
 class Directive(models.Model):

@@ -41,6 +41,48 @@
     .metric-label { font-size: .85rem; color: #64748b; }
     .page-title { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; }
     .page-subtitle { color: #64748b; font-size: .95rem; }
+
+    @media (max-width: 991.98px) {
+      .navbar-collapse .dropdown-menu {
+        position: static !important;
+        float: none;
+        width: auto;
+        margin: 0.25rem 0 0.5rem 1rem;
+        padding: 0.5rem 0;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        box-shadow: none;
+      }
+
+      .navbar-collapse .dropdown-item {
+        color: rgba(255, 255, 255, 0.9);
+        border-radius: 0.35rem;
+        padding: 0.5rem 0.75rem;
+      }
+      .navbar-collapse .dropdown-item:hover,
+      .navbar-collapse .dropdown-item:focus {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+      }
+      .navbar-collapse .dropdown-item.active {
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+      }
+
+      .navbar-collapse .dropdown-header {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.5rem 0.75rem 0.25rem;
+      }
+
+      .navbar-collapse .dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.15);
+        margin: 0.25rem 0.75rem;
+      }
+    }
   </style>
   {% block extra_css %}{% endblock %}
 </head>

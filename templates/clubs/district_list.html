@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Distritos Misioneros{% endblock %}
+{% block content %}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+  <div>
+    <h1 class="page-title mb-1">Distritos Misioneros</h1>
+    <p class="page-subtitle mb-0">Agrupaciones territoriales de los clubes.</p>
+  </div>
+  <a href="{% url 'clubs:district_create' %}" class="btn btn-primary w-100 w-sm-auto">
+    <i class="bi bi-plus-lg"></i> Nuevo distrito
+  </a>
+</div>
+
+<form method="get" class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-8">
+        <label for="q" class="form-label small fw-semibold">Buscar</label>
+        <input type="text" id="q" name="q" value="{{ q }}"
+               class="form-control" placeholder="Nombre del distrito">
+      </div>
+      <div class="col-12 col-sm-4 d-flex align-items-end">
+        <button class="btn btn-primary w-100">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for d in districts %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+            <div class="min-w-0">
+              <h5 class="card-title mb-1 text-truncate">{{ d.name }}</h5>
+              <p class="text-muted small mb-0">Creado el {{ d.created_at|date:"d/m/Y" }}</p>
+            </div>
+            <span class="badge bg-primary text-nowrap">
+              <i class="bi bi-building"></i> {{ d.clubs_count }}
+            </span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'clubs:list' %}?district={{ d.pk }}"
+               class="btn btn-outline-secondary btn-sm flex-fill">
+              <i class="bi bi-list-ul"></i> Ver clubes
+            </a>
+            <a href="{% url 'clubs:district_update' d.pk %}"
+               class="btn btn-outline-primary btn-sm" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'clubs:district_delete' d.pk %}"
+               class="btn btn-outline-danger btn-sm" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center text-muted py-5">
+          <i class="bi bi-geo-alt fs-1 d-block mb-2 opacity-50"></i>
+          <p class="fw-semibold text-dark mb-1">Sin distritos registrados</p>
+          <p class="small mb-0">Crea tu primer distrito misionero.</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% include 'partials/pagination.html' %}
+{% endblock %}
