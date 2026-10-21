@@ -47,7 +47,34 @@ class ParticipantForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if user and not user.is_admin and user.club_id:
-            self.fields['club'].queryset = Club.objects.filter(pk=user.club_id)
-            self.fields['club'].initial = user.club_id
-            self.fields['club'].widget.attrs['disabled'] = True
+        self.user = user
+
+        if user and not user.is_admin:
+            # --- Registrador / observador ---
+            if user.club_id:
+                self.fields['club'].queryset = Club.objects.filter(pk=user.club_id)
+                self.fields['club'].initial = user.club_id
+                self.fields['club'].disabled = True
+            else:
+                # Sin club asignado: no puede crear participantes
+                self.fields['club'].queryset = Club.objects.none()
+                self.fields['club'].disabled = True
+        else:
+            # --- Admin: select normal con todos los clubes ---
+            self.fields['club'].queryset = (
+                Club.objects.select_related('district')
+                .order_by('district__name', 'zone', 'name')
+            )
+            self.fields['club'].empty_label = '— Selecciona un club —'
+
+    def clean_club(self):
+        """Defensa final: para no-admin siempre devuelve su club."""
+        if self.user and not self.user.is_admin and self.user.club_id:
+            return self.user.club
+        return self.cleaned_data.get('club')
+
+    def clean_dni(self):
+        dni = (self.cleaned_data.get('dni') or '').strip()
+        if not dni.isdigit() or len(dni) != 8:
+            raise forms.ValidationError('El DNI debe tener exactamente 8 dígitos numéricos.')
+        return dni

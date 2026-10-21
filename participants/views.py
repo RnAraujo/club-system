@@ -66,6 +66,17 @@ class ParticipantCreateView(LoginRequiredMixin, CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
+    def get_initial(self):
+        initial = super().get_initial()
+        u = self.request.user
+        if not u.is_admin and u.club_id:
+            initial['club'] = u.club_id
+        else:
+            club_id = self.request.GET.get('club')
+            if club_id:
+                initial['club'] = club_id
+        return initial
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['form_title'] = 'Nuevo participante'
@@ -73,6 +84,9 @@ class ParticipantCreateView(LoginRequiredMixin, CreateView):
         return ctx
 
     def form_valid(self, form):
+        u = self.request.user
+        if not u.is_admin and u.club_id:
+            form.instance.club_id = u.club_id
         messages.success(self.request, 'Participante registrado correctamente.')
         return super().form_valid(form)
 
@@ -86,8 +100,8 @@ class ParticipantUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         qs = super().get_queryset()
         u = self.request.user
-        if not u.is_admin and u.club_id:
-            qs = qs.filter(club_id=u.club_id)
+        if not u.is_admin:
+            qs = qs.filter(club_id=u.club_id) if u.club_id else qs.none()
         return qs
 
     def get_form_kwargs(self):
@@ -102,6 +116,9 @@ class ParticipantUpdateView(LoginRequiredMixin, UpdateView):
         return ctx
 
     def form_valid(self, form):
+        u = self.request.user
+        if not u.is_admin and u.club_id:
+            form.instance.club_id = u.club_id
         messages.success(self.request, 'Participante actualizado correctamente.')
         return super().form_valid(form)
 
