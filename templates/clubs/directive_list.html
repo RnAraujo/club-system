@@ -7,9 +7,11 @@
     <h1 class="page-title mb-1">Directiva</h1>
     <p class="page-subtitle mb-0">Consulta y administra los directivos de todos los clubes.</p>
   </div>
+  {% if user.is_registrador %}
   <a href="{% url 'clubs:directive_create' %}" class="btn btn-primary w-100 w-sm-auto">
     <i class="bi bi-plus-lg"></i> Nuevo directivo
   </a>
+{% endif %}
 </div>
 
 <!-- Filtros -->
@@ -54,6 +56,7 @@
           </div>
           <span class="badge bg-primary text-nowrap">{{ d.get_position_display }}</span>
         </div>
+        {% if user.is_registrador %}
         <div class="d-flex gap-2">
           <a href="{% url 'clubs:directive_update' d.pk %}" class="btn btn-outline-secondary btn-sm flex-fill">
             <i class="bi bi-pencil"></i> Editar
@@ -62,6 +65,7 @@
             <i class="bi bi-trash"></i> Eliminar
           </a>
         </div>
+        {% endif %}
       </div>
     </div>
   {% empty %}

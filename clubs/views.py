@@ -8,7 +8,7 @@ from django.db.models.deletion import ProtectedError
 from django.contrib import messages
 from django.shortcuts import redirect
 
-from accounts.mixins import AdminRequiredMixin
+from accounts.mixins import AdminRequiredMixin, RegistradorRequiredMixin
 from .models import Club, Directive, MissionaryDistrict
 from .forms import ClubForm, DirectiveForm, MissionaryDistrictForm
 
@@ -169,10 +169,10 @@ class DirectiveListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class DirectiveCreateView(AdminRequiredMixin, CreateView):
+class DirectiveCreateView(RegistradorRequiredMixin, CreateView):
     model = Directive
     form_class = DirectiveForm
-    template_name = 'clubs/form.html'
+    template_name = 'clubs/directive_form.html'
     success_url = reverse_lazy('clubs:directive_list')
 
     def get_initial(self):
@@ -188,15 +188,20 @@ class DirectiveCreateView(AdminRequiredMixin, CreateView):
         ctx['cancel_url'] = reverse_lazy('clubs:directive_list')
         return ctx
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         messages.success(self.request, 'Directivo registrado correctamente.')
         return super().form_valid(form)
 
 
-class DirectiveUpdateView(AdminRequiredMixin, UpdateView):
+class DirectiveUpdateView(RegistradorRequiredMixin, UpdateView):
     model = Directive
     form_class = DirectiveForm
-    template_name = 'clubs/form.html'
+    template_name = 'clubs/directive_form.html'
     success_url = reverse_lazy('clubs:directive_list')
 
     def get_context_data(self, **kwargs):
@@ -205,12 +210,17 @@ class DirectiveUpdateView(AdminRequiredMixin, UpdateView):
         ctx['cancel_url'] = reverse_lazy('clubs:directive_list')
         return ctx
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         messages.success(self.request, 'Directivo actualizado correctamente.')
         return super().form_valid(form)
 
 
-class DirectiveDeleteView(AdminRequiredMixin, DeleteView):
+class DirectiveDeleteView(RegistradorRequiredMixin, DeleteView):
     model = Directive
     template_name = 'clubs/confirm_delete.html'
     success_url = reverse_lazy('clubs:directive_list')
@@ -220,6 +230,11 @@ class DirectiveDeleteView(AdminRequiredMixin, DeleteView):
         ctx['title'] = 'Eliminar directivo'
         ctx['cancel_url'] = reverse_lazy('clubs:directive_list')
         return ctx
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         messages.success(self.request, 'Directivo eliminado.')
