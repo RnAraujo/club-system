@@ -2,27 +2,33 @@
 {% block title %}Especialidades{% endblock %}
 {% block content %}
 
-<!-- Encabezado -->
+<!-- ============================
+     ENCABEZADO
+     ============================ -->
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
   <div>
     <h1 class="page-title mb-1">Especialidades</h1>
     <p class="page-subtitle mb-0">
-      Administra las especialidades, sus cupos y programaciones por día.
+      Administra las especialidades, sus responsables, cupos y programaciones por día.
     </p>
   </div>
-  <div class="d-flex gap-2 w-100 w-sm-auto">
-    <a href="{% url 'specialties:schedule_create' %}"
-       class="btn btn-outline-primary flex-fill flex-sm-grow-0">
-      <i class="bi bi-calendar-plus"></i> Programar
-    </a>
-    <a href="{% url 'specialties:create' %}"
-       class="btn btn-primary flex-fill flex-sm-grow-0">
-      <i class="bi bi-plus-lg"></i> Nueva
-    </a>
-  </div>
+  {% if user.is_admin %}
+    <div class="d-flex gap-2 w-100 w-sm-auto">
+      <a href="{% url 'specialties:schedule_create' %}"
+         class="btn btn-outline-primary flex-fill flex-sm-grow-0">
+        <i class="bi bi-calendar-plus"></i> Programar
+      </a>
+      <a href="{% url 'specialties:create' %}"
+         class="btn btn-primary flex-fill flex-sm-grow-0">
+        <i class="bi bi-plus-lg"></i> Nueva
+      </a>
+    </div>
+  {% endif %}
 </div>
 
-<!-- ============================ ESPECIALIDADES ============================ -->
+<!-- ============================
+     LISTADO DE ESPECIALIDADES
+     ============================ -->
 <div class="card mb-4">
   <div class="card-header bg-white">
     <h5 class="card-title mb-0">
@@ -47,6 +53,8 @@
         <div class="col-12 col-md-6 col-xl-4">
           <div class="card h-100">
             <div class="card-body">
+
+              <!-- Nombre y total inscritos -->
               <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div class="min-w-0">
                   <h6 class="fw-bold mb-1 text-truncate">{{ s.name }}</h6>
@@ -59,6 +67,25 @@
                 </span>
               </div>
 
+              <!-- Responsable -->
+              <div class="border rounded-3 bg-light px-3 py-2 my-3 small">
+                <div class="text-muted" style="font-size: .7rem; text-transform: uppercase; letter-spacing: .03em;">
+                  <i class="bi bi-person-badge"></i> Responsable
+                </div>
+                <div class="fw-semibold text-truncate">
+                  {{ s.responsible_full_name|default:"—" }}
+                </div>
+                {% if s.responsible_dni %}
+                  <div class="text-muted" style="font-size: .75rem;">
+                    DNI: <span class="font-monospace">{{ s.responsible_dni }}</span>
+                    {% if s.responsible_phone %}
+                      · <i class="bi bi-telephone"></i> {{ s.responsible_phone }}
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Métricas -->
               <div class="row g-2 small mb-3">
                 <div class="col-6">
                   <div class="bg-light rounded p-2 text-center">
@@ -74,20 +101,24 @@
                 </div>
               </div>
 
-              <div class="d-flex gap-1">
-                <a href="{% url 'specialties:schedule_create' %}?specialty={{ s.pk }}"
-                   class="btn btn-sm btn-outline-primary flex-fill">
-                  <i class="bi bi-calendar-plus"></i> Programar
-                </a>
-                <a href="{% url 'specialties:update' s.pk %}"
-                   class="btn btn-sm btn-outline-secondary" title="Editar">
-                  <i class="bi bi-pencil"></i>
-                </a>
-                <a href="{% url 'specialties:delete' s.pk %}"
-                   class="btn btn-sm btn-outline-danger" title="Eliminar">
-                  <i class="bi bi-trash"></i>
-                </a>
-              </div>
+              <!-- Acciones (solo admin) -->
+              {% if user.is_admin %}
+                <div class="d-flex gap-1">
+                  <a href="{% url 'specialties:schedule_create' %}?specialty={{ s.pk }}"
+                     class="btn btn-sm btn-outline-primary flex-fill">
+                    <i class="bi bi-calendar-plus"></i> Programar
+                  </a>
+                  <a href="{% url 'specialties:update' s.pk %}"
+                     class="btn btn-sm btn-outline-secondary" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="{% url 'specialties:delete' s.pk %}"
+                     class="btn btn-sm btn-outline-danger" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              {% endif %}
+
             </div>
           </div>
         </div>
@@ -110,7 +141,9 @@
   {% endif %}
 </div>
 
-<!-- ============================ PROGRAMACIONES ============================ -->
+<!-- ============================
+     PROGRAMACIONES
+     ============================ -->
 <div class="card">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
     <h5 class="card-title mb-0">
@@ -171,6 +204,11 @@
               <div class="text-muted small">
                 <i class="bi bi-calendar3"></i> {{ sc.date|date:"d/m/Y" }}
               </div>
+              {% if sc.specialty.responsible_full_name %}
+                <div class="text-muted small text-truncate">
+                  <i class="bi bi-person-badge"></i> {{ sc.specialty.responsible_full_name }}
+                </div>
+              {% endif %}
             </div>
             {% if sc.date < today %}
               <span class="badge bg-secondary">Pasada</span>
@@ -195,18 +233,20 @@
             </div>
           </div>
 
-          <div class="d-flex gap-2">
-            <a href="{% url 'specialties:schedule_update' sc.pk %}"
-               class="btn btn-outline-secondary btn-sm flex-fill">
-              <i class="bi bi-pencil"></i> Editar
-            </a>
-            {% if not sc.registered %}
-              <a href="{% url 'specialties:schedule_delete' sc.pk %}"
-                 class="btn btn-outline-danger btn-sm flex-fill">
-                <i class="bi bi-trash"></i> Eliminar
+          {% if user.is_admin %}
+            <div class="d-flex gap-2">
+              <a href="{% url 'specialties:schedule_update' sc.pk %}"
+                 class="btn btn-outline-secondary btn-sm flex-fill">
+                <i class="bi bi-pencil"></i> Editar
               </a>
-            {% endif %}
-          </div>
+              {% if not sc.registered %}
+                <a href="{% url 'specialties:schedule_delete' sc.pk %}"
+                   class="btn btn-outline-danger btn-sm flex-fill">
+                  <i class="bi bi-trash"></i> Eliminar
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
       </div>
     {% empty %}
@@ -225,6 +265,7 @@
         <thead class="table-light">
           <tr>
             <th>Especialidad</th>
+            <th>Responsable</th>
             <th>Fecha</th>
             <th style="min-width: 200px;">Ocupación</th>
             <th class="text-center">Inscritos</th>
@@ -236,6 +277,16 @@
           {% for sc in schedules %}
             <tr {% if sc.date < today %}class="text-muted"{% endif %}>
               <td class="fw-semibold">{{ sc.specialty.name }}</td>
+              <td class="small">
+                {% if sc.specialty.responsible_full_name %}
+                  <div class="fw-semibold">{{ sc.specialty.responsible_full_name }}</div>
+                  <div class="text-muted font-monospace" style="font-size: .75rem;">
+                    {{ sc.specialty.responsible_dni }}
+                  </div>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
               <td class="text-nowrap">
                 <i class="bi bi-calendar3 me-1"></i>
                 {{ sc.date|date:"d/m/Y" }}
@@ -271,23 +322,25 @@
                 {% endif %}
               </td>
               <td class="text-end">
-                <div class="btn-group btn-group-sm">
-                  <a href="{% url 'specialties:schedule_update' sc.pk %}"
-                     class="btn btn-outline-secondary">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                  {% if not sc.registered %}
-                    <a href="{% url 'specialties:schedule_delete' sc.pk %}"
-                       class="btn btn-outline-danger">
-                      <i class="bi bi-trash"></i>
+                {% if user.is_admin %}
+                  <div class="btn-group btn-group-sm">
+                    <a href="{% url 'specialties:schedule_update' sc.pk %}"
+                       class="btn btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
                     </a>
-                  {% endif %}
-                </div>
+                    {% if not sc.registered %}
+                      <a href="{% url 'specialties:schedule_delete' sc.pk %}"
+                         class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                {% endif %}
               </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="6" class="text-center py-5 text-muted">
+              <td colspan="7" class="text-center py-5 text-muted">
                 <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
                 <p class="fw-semibold text-dark mb-1">Sin programaciones</p>
                 <p class="small mb-0">Ajusta los filtros o crea una nueva programación.</p>

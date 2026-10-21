@@ -5,14 +5,24 @@ from .models import Specialty, SpecialtySchedule
 class SpecialtyForm(forms.ModelForm):
     class Meta:
         model = Specialty
-        fields = ['name', 'max_participants']
+        fields = [
+            'name', 'max_participants',
+            'responsible_first_name', 'responsible_last_name',
+            'responsible_phone', 'responsible_dni',
+        ]
         labels = {
             'name': 'Nombre de la especialidad',
             'max_participants': 'Máximo de participantes',
+            'responsible_first_name': 'Nombres',
+            'responsible_last_name': 'Apellidos',
+            'responsible_phone': 'Celular',
+            'responsible_dni': 'DNI',
         }
         help_texts = {
             'name': 'Debe ser único en el sistema.',
             'max_participants': 'Cupo máximo que se asignará a cada programación.',
+            'responsible_dni': 'Documento Nacional de Identidad (8 dígitos).',
+            'responsible_phone': 'Número de contacto del responsable.',
         }
         widgets = {
             'name': forms.TextInput(attrs={
@@ -26,7 +36,44 @@ class SpecialtyForm(forms.ModelForm):
                 'min': 1,
                 'inputmode': 'numeric',
             }),
+            'responsible_first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej.: Juan',
+                'autocomplete': 'off',
+            }),
+            'responsible_last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej.: Pérez',
+                'autocomplete': 'off',
+            }),
+            'responsible_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej.: 999888777',
+                'inputmode': 'tel',
+            }),
+            'responsible_dni': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '8 dígitos',
+                'maxlength': 8,
+                'inputmode': 'numeric',
+                'autocomplete': 'off',
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Los 4 campos del responsable son obligatorios a nivel de formulario
+        for name in (
+            'responsible_first_name', 'responsible_last_name',
+            'responsible_phone', 'responsible_dni',
+        ):
+            self.fields[name].required = True
+
+    def clean_responsible_dni(self):
+        dni = (self.cleaned_data.get('responsible_dni') or '').strip()
+        if not dni.isdigit() or len(dni) != 8:
+            raise forms.ValidationError('El DNI debe tener exactamente 8 dígitos numéricos.')
+        return dni
 
 
 class ScheduleForm(forms.ModelForm):

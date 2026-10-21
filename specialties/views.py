@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.contrib import messages
 from django.utils import timezone
 
+from accounts.mixins import AdminRequiredMixin
 from .models import Specialty, SpecialtySchedule
 from .forms import SpecialtyForm, ScheduleForm
 
@@ -68,7 +69,7 @@ class SpecialtyListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class SpecialtyCreateView(LoginRequiredMixin, CreateView):
+class SpecialtyCreateView(AdminRequiredMixin, CreateView):
     model = Specialty
     form_class = SpecialtyForm
     template_name = 'specialties/form.html'
@@ -85,7 +86,7 @@ class SpecialtyCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class SpecialtyUpdateView(LoginRequiredMixin, UpdateView):
+class SpecialtyUpdateView(AdminRequiredMixin, UpdateView):
     model = Specialty
     form_class = SpecialtyForm
     template_name = 'specialties/form.html'
@@ -102,7 +103,7 @@ class SpecialtyUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class SpecialtyDeleteView(LoginRequiredMixin, DeleteView):
+class SpecialtyDeleteView(AdminRequiredMixin, DeleteView):
     model = Specialty
     template_name = 'specialties/confirm_delete.html'
     success_url = reverse_lazy('specialties:list')
@@ -120,7 +121,7 @@ class SpecialtyDeleteView(LoginRequiredMixin, DeleteView):
 
 # ========================= PROGRAMACIONES =========================
 
-class ScheduleCreateView(LoginRequiredMixin, CreateView):
+class ScheduleCreateView(AdminRequiredMixin, CreateView):
     model = SpecialtySchedule
     form_class = ScheduleForm
     template_name = 'specialties/schedule_form.html'
@@ -144,7 +145,7 @@ class ScheduleCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ScheduleUpdateView(LoginRequiredMixin, UpdateView):
+class ScheduleUpdateView(AdminRequiredMixin, UpdateView):
     model = SpecialtySchedule
     form_class = ScheduleForm
     template_name = 'specialties/schedule_form.html'
@@ -161,7 +162,7 @@ class ScheduleUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ScheduleDeleteView(LoginRequiredMixin, DeleteView):
+class ScheduleDeleteView(AdminRequiredMixin, DeleteView):
     model = SpecialtySchedule
     template_name = 'specialties/confirm_delete.html'
     success_url = reverse_lazy('specialties:list')

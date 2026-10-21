@@ -5,6 +5,7 @@
 <div class="row justify-content-center">
   <div class="col-12 col-lg-7">
 
+    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb small mb-0">
         <li class="breadcrumb-item"><a href="{% url 'specialties:list' %}">Especialidades</a></li>
@@ -12,6 +13,7 @@
       </ol>
     </nav>
 
+    <!-- Encabezado -->
     <div class="mb-4">
       <h1 class="page-title mb-1">{{ form_title }}</h1>
       <p class="page-subtitle mb-0">
@@ -26,15 +28,32 @@
         <div class="card-body p-4">
 
           {% if form.non_field_errors %}
-            <div class="alert alert-danger d-flex align-items-center gap-2">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <div>{{ form.non_field_errors.0 }}</div>
+            <div class="alert alert-danger d-flex align-items-start gap-2 mb-4">
+              <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+              <div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
             </div>
           {% endif %}
 
+          <!-- Info del responsable (si es edición y ya existe la especialidad) -->
+          {% if object and object.specialty %}
+            <div class="alert alert-info d-flex align-items-start gap-2 small mb-4">
+              <i class="bi bi-person-badge mt-1"></i>
+              <div>
+                <strong>Responsable:</strong>
+                {{ object.specialty.responsible_full_name|default:"—" }}
+                {% if object.specialty.responsible_phone %}
+                  · <i class="bi bi-telephone"></i> {{ object.specialty.responsible_phone }}
+                {% endif %}
+                {% if object.specialty.responsible_dni %}
+                  · DNI: <span class="font-monospace">{{ object.specialty.responsible_dni }}</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Info de la programación existente (si es edición) -->
           {% if object %}
-            <!-- Info de la programación existente (si es edición) -->
-            <div class="alert alert-info d-flex align-items-start gap-2 small">
+            <div class="alert alert-info d-flex align-items-start gap-2 small mb-4">
               <i class="bi bi-info-circle-fill mt-1"></i>
               <div>
                 <strong>Cupos actuales:</strong>
@@ -48,11 +67,15 @@
             </div>
           {% endif %}
 
+          <!-- Especialidad -->
           <div class="mb-3">
             <label for="{{ form.specialty.id_for_label }}" class="form-label fw-semibold">
               {{ form.specialty.label }} <span class="text-danger">*</span>
             </label>
             {{ form.specialty }}
+            {% if form.specialty.help_text %}
+              <div class="form-text">{{ form.specialty.help_text }}</div>
+            {% endif %}
             {% if form.specialty.errors %}
               <div class="text-danger small mt-1 d-flex align-items-center gap-1">
                 <i class="bi bi-exclamation-circle"></i> {{ form.specialty.errors.0 }}
@@ -60,6 +83,7 @@
             {% endif %}
           </div>
 
+          <!-- Fecha -->
           <div class="mb-0">
             <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">
               {{ form.date.label }} <span class="text-danger">*</span>
@@ -75,8 +99,22 @@
             {% endif %}
           </div>
 
+          <!-- Alerta de reglas -->
+          <div class="alert alert-info d-flex align-items-start gap-2 small mt-4 mb-0">
+            <i class="bi bi-info-circle-fill mt-1"></i>
+            <div>
+              <strong>Recuerda:</strong>
+              <ul class="mb-0 ps-3 mt-1">
+                <li>Un participante solo puede inscribirse una vez por día.</li>
+                <li>El cupo se inicializa automáticamente desde la especialidad.</li>
+                <li>Solo el administrador puede crear o modificar programaciones.</li>
+              </ul>
+            </div>
+          </div>
+
         </div>
 
+        <!-- Footer -->
         <div class="card-footer bg-light d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2 py-3">
           <a href="{{ cancel_url }}" class="btn btn-outline-secondary">Cancelar</a>
           <button type="submit" class="btn btn-primary">

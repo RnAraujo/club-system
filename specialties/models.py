@@ -9,6 +9,20 @@ class Specialty(models.Model):
         verbose_name='Máximo de participantes',
     )
 
+    # ===== Responsable (asignado por el administrador) =====
+    responsible_first_name = models.CharField(
+        max_length=150, verbose_name='Nombres del responsable',
+    )
+    responsible_last_name = models.CharField(
+        max_length=150, verbose_name='Apellidos del responsable',
+    )
+    responsible_phone = models.CharField(
+        max_length=15, verbose_name='Celular del responsable',
+    )
+    responsible_dni = models.CharField(
+        max_length=8, verbose_name='DNI del responsable',
+    )
+
     class Meta:
         verbose_name = 'Especialidad'
         verbose_name_plural = 'Especialidades'
@@ -16,6 +30,10 @@ class Specialty(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def responsible_full_name(self):
+        return f"{self.responsible_first_name} {self.responsible_last_name}".strip()
 
 
 class SpecialtySchedule(models.Model):
