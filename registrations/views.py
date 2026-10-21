@@ -153,7 +153,7 @@ class RegistrationCreateView(RegistradorRequiredMixin, FormView):
 
 # ========================== PROCESOS ==========================
 
-class ProcessListView(LoginRequiredMixin, ListView):
+class ProcessListView(RegistradorRequiredMixin, ListView):
     model = RegistrationProcess
     template_name = 'registrations/process.html'
     context_object_name = 'processes'

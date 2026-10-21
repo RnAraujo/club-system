@@ -5,6 +5,7 @@ from django.db.models import Q, Count
 from django.contrib import messages
 from registrations.models import Registration, RegistrationProcess
 
+from accounts.mixins import RegistradorRequiredMixin
 from .models import Participant
 from .forms import ParticipantForm
 from clubs.models import Club
@@ -55,7 +56,7 @@ class ParticipantListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class ParticipantCreateView(LoginRequiredMixin, CreateView):
+class ParticipantCreateView(RegistradorRequiredMixin, CreateView):
     model = Participant
     form_class = ParticipantForm
     template_name = 'participants/form.html'
@@ -91,7 +92,7 @@ class ParticipantCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ParticipantUpdateView(LoginRequiredMixin, UpdateView):
+class ParticipantUpdateView(RegistradorRequiredMixin, UpdateView):
     model = Participant
     form_class = ParticipantForm
     template_name = 'participants/form.html'

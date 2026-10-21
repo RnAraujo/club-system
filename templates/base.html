@@ -93,6 +93,18 @@
   {% endif %}
 
   <main class="container py-4">
+    {% if user.is_authenticated and user.role == 'observador' %}
+      <div class="alert alert-info d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-eye-fill"></i>
+        <div>
+          <strong>Modo solo lectura.</strong>
+          Puedes consultar la información de
+          {% if user.club %}<strong>{{ user.club.name }}</strong>{% else %}tu club{% endif %}
+          pero no realizar cambios en el sistema.
+        </div>
+      </div>
+    {% endif %}
+    
     {% include 'partials/messages.html' %}
     {% block content %}{% endblock %}
   </main>

@@ -28,9 +28,11 @@
     <a href="{% url 'participants:list' %}" class="btn btn-outline-secondary flex-fill flex-sm-grow-0">
       <i class="bi bi-arrow-left"></i> Volver
     </a>
-    <a href="{% url 'participants:update' participant.pk %}" class="btn btn-primary flex-fill flex-sm-grow-0">
-      <i class="bi bi-pencil"></i> Editar
-    </a>
+    {% if user.is_registrador %}
+      <a href="{% url 'participants:update' participant.pk %}" class="btn btn-primary flex-fill flex-sm-grow-0">
+        <i class="bi bi-pencil"></i> Editar
+      </a>
+    {% endif %}
   </div>
 </div>
 
@@ -235,9 +237,12 @@
             <i class="bi bi-plus-circle"></i> Nueva inscripción
           </a>
         {% endif %}
-        <a href="{% url 'participants:update' participant.pk %}" class="btn btn-outline-primary">
-          <i class="bi bi-pencil"></i> Editar participante
-        </a>
+
+        {% if user.is_registrador %}
+          <a href="{% url 'participants:update' participant.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i> Editar participante
+          </a>
+        {% endif %}
         <a href="{% url 'clubs:detail' participant.club.pk %}" class="btn btn-outline-secondary">
           <i class="bi bi-building"></i> Ver club
         </a>

@@ -102,14 +102,18 @@
             <td>{{ d.club.name }}</td>
             <td>{{ d.phone|default:"—" }}</td>
             <td class="text-end">
-              <div class="btn-group btn-group-sm">
-                <a href="{% url 'clubs:directive_update' d.pk %}" class="btn btn-outline-secondary">
-                  <i class="bi bi-pencil"></i> Editar
-                </a>
-                <a href="{% url 'clubs:directive_delete' d.pk %}" class="btn btn-outline-danger">
-                  <i class="bi bi-trash"></i> Eliminar
-                </a>
-              </div>
+              {% if user.is_registrador %}
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'clubs:directive_update' d.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Editar
+                  </a>
+                  <a href="{% url 'clubs:directive_delete' d.pk %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </a>
+                </div>
+              {% else %}
+                <span class="text-muted">No disponible</span>
+              {% endif %}
             </td>
           </tr>
         {% empty %}

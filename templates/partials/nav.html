@@ -83,11 +83,13 @@
                 <i class="bi bi-people me-2"></i> Listado de participantes
               </a>
             </li>
-            <li>
-              <a class="dropdown-item" href="{% url 'participants:create' %}">
-                <i class="bi bi-person-plus me-2"></i> Nuevo participante
-              </a>
-            </li>
+            {% if user.is_registrador %}
+              <li>
+                <a class="dropdown-item" href="{% url 'participants:create' %}">
+                  <i class="bi bi-person-plus me-2"></i> Nuevo participante
+                </a>
+              </li>
+            {% endif %}
 
           </ul>
         </li>

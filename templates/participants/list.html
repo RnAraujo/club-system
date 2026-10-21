@@ -10,9 +10,11 @@
       Consulta, busca y administra los participantes registrados.
     </p>
   </div>
-  <a href="{% url 'participants:create' %}" class="btn btn-primary w-100 w-sm-auto">
-    <i class="bi bi-person-plus"></i> Nuevo participante
-  </a>
+  {% if user.is_registrador %}
+    <a href="{% url 'participants:create' %}" class="btn btn-primary w-100 w-sm-auto">
+      <i class="bi bi-person-plus"></i> Nuevo participante
+    </a>
+  {% endif %}
 </div>
 
 <!-- Filtros -->
@@ -87,10 +89,12 @@
              class="btn btn-outline-secondary btn-sm flex-fill">
             <i class="bi bi-eye"></i> Ver
           </a>
+          {% if user.is_registrador %}
           <a href="{% url 'participants:update' p.pk %}"
              class="btn btn-primary btn-sm flex-fill">
             <i class="bi bi-pencil"></i> Editar
           </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -138,9 +142,11 @@
                 <a href="{% url 'participants:detail' p.pk %}" class="btn btn-outline-secondary">
                   <i class="bi bi-eye"></i> Ver
                 </a>
-                <a href="{% url 'participants:update' p.pk %}" class="btn btn-outline-primary">
-                  <i class="bi bi-pencil"></i> Editar
-                </a>
+                {% if user.is_registrador %}
+                  <a href="{% url 'participants:update' p.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                  </a>
+                {% endif %}
               </div>
             </td>
           </tr>

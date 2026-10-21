@@ -241,16 +241,22 @@
           <a href="{% url 'registrations:create' %}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Nueva inscripción
           </a>
+
+          <a href="{% url 'participants:create' %}" class="btn btn-outline-primary">
+            <i class="bi bi-person-plus"></i> Registrar participante
+          </a>
         {% endif %}
-        <a href="{% url 'participants:create' %}" class="btn btn-outline-primary">
-          <i class="bi bi-person-plus"></i> Registrar participante
-        </a>
-        <a href="{% url 'clubs:create' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-building-add"></i> Nuevo club
-        </a>
-        <a href="{% url 'specialties:create' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-trophy"></i> Nueva especialidad
-        </a>
+
+        {% if user.is_admin %}
+          <a href="{% url 'clubs:create' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-building-add"></i> Nuevo club
+          </a>
+
+          <a href="{% url 'specialties:create' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-trophy"></i> Nueva especialidad
+          </a>
+        {% endif %}
+
         <a href="{% url 'reports:index' %}" class="btn btn-outline-secondary">
           <i class="bi bi-bar-chart"></i> Ver reportes
         </a>
